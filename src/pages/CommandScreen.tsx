@@ -138,11 +138,11 @@ export const CommandScreen: React.FC = () => {
           </div>
 
           {/* Panel Content Body */}
-          <div className="flex-1 min-h-0 overflow-hidden relative">
+          <div className="flex-1 min-h-0 overflow-hidden relative flex flex-col">
             {activeIncidentTab === 'queue' ? (
               <IncidentQueue onSelectIncident={handleSelectIncidentFromQueue} />
             ) : (
-              <div className="h-full flex flex-col">
+              <div className="h-full min-h-0 flex flex-col">
                 <div className="px-2.5 py-1 bg-surface-2 border-b border-border flex items-center justify-between">
                   <button
                     onClick={() => setActiveIncidentTab('queue')}
