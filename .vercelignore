@@ -1,0 +1,6 @@
+backend
+drishti.db
+docker-compose.yml
+.pytest_cache
+.env
+.env.local
