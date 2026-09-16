@@ -23,6 +23,16 @@ import { AdminScreen } from './pages/AdminScreen';
 import { DrishtiPublicLanding } from './pages/DrishtiPublicLanding';
 
 export const App: React.FC = () => {
+  React.useEffect(() => {
+    const redirectPath = sessionStorage.getItem('drishti_redirect_path');
+    if (redirectPath) {
+      sessionStorage.removeItem('drishti_redirect_path');
+      if (redirectPath !== '/' && window.location.pathname !== redirectPath) {
+        window.history.replaceState(null, '', redirectPath);
+      }
+    }
+  }, []);
+
   return (
     <RealtimeProvider>
       <BrowserRouter>
@@ -85,8 +95,6 @@ export const App: React.FC = () => {
             <Route path="admin/audit" element={<AdminScreen />} />
           </Route>
 
-          {/* Root Redirect */}
-          <Route path="/" element={<Navigate to="/app/command" replace />} />
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/app/command" replace />} />
         </Routes>

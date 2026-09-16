@@ -46,6 +46,9 @@ export const TopBar: React.FC = () => {
           <span className="px-2 py-0.5 rounded bg-surface-2 border border-border text-2xs font-semibold text-text tracking-wide uppercase">
             {systemStatus.sector || 'NORTH SECTOR'} / {systemStatus.bopCode || 'BOP-17'}
           </span>
+          <span className="hidden sm:inline-flex px-1.5 py-0.5 rounded bg-surface-2 border border-border/60 text-[9px] font-mono text-text-dim tracking-wider" title="Production Build Release">
+            BUILD 2026.09.1-PROD
+          </span>
         </div>
       </div>
 
