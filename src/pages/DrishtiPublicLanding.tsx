@@ -21,7 +21,10 @@ import {
   Layers,
   Server,
   Activity,
-  Maximize2
+  Truck,
+  User,
+  Send,
+  Bell
 } from 'lucide-react';
 import { CameraFeed } from '../components/video/CameraFeed';
 import { useRealtime } from '../context/RealtimeContext';
@@ -30,37 +33,37 @@ interface SceneMeta {
   id: number;
   slug: string;
   title: string;
-  subtitle: string;
   tag: string;
   description: string;
 }
 
 const SCENES: SceneMeta[] = [
-  { id: 1, slug: 'BOP', title: 'Arrival at BOP-17', subtitle: 'North Sector Frontier Outpost', tag: 'TERRAIN RECON', description: '2.8 km border sector. Undulating terrain, access roadway, watchtowers, and linear border fence.' },
-  { id: 2, slug: 'CAMERAS', title: 'Perimeter Sensor Grid', subtitle: 'Sensors Come Online', tag: 'SENSOR GRID', description: '7 multi-spectral sensor nodes activate. Fixed CCTV, optical PTZ domes, and thermal barriers establish coverage.' },
-  { id: 3, slug: 'EDGE', title: 'Ruggedized Edge Appliance', subtitle: 'BOP Inference Gateway', tag: 'LOCAL COMPUTE', description: 'Local GPU node runs YOLOv8, ByteTrack, SWAN consensus, and SHIELD health loops with zero cloud reliance.' },
-  { id: 4, slug: 'MONITOR', title: 'Normal Surveillance State', subtitle: 'All Sectors Nominal', tag: 'SURVEILLANCE', description: 'Continuous optical/thermal scanning. Zero border boundary violations detected.' },
-  { id: 5, slug: 'DETECT', title: 'Target Enters Monitored Zone', subtitle: 'CAM-03 Acquires T-104', tag: 'TARGET DETECTED', description: 'Single thermal signature detected approaching sector fence line at 1.8 m/s.' },
-  { id: 6, slug: 'FENCE', title: 'Virtual Fence Violation', subtitle: 'Border Barrier Breach', tag: 'BOUNDARY EVENT', description: 'T-104 crosses the virtual fence tripwire into restricted buffer zone. Alert state elevated.' },
-  { id: 7, slug: 'FAILURE', title: 'CAM-03 Sensor Sabotage', subtitle: 'Heartbeat Lost & Blind Zone', tag: 'SENSOR FAILURE', description: 'Physical spray/tamper disables CAM-03. A 32% perimeter blind zone appears while T-104 is moving.' },
-  { id: 8, slug: 'SHIELD', title: 'SHIELD Health Diagnostics', subtitle: 'Autonomous Fault Classification', tag: 'SELF-HEALING', description: 'SHIELD detects 3.0s timeout, classifies physical tamper, and measures residual blind zone.' },
-  { id: 9, slug: 'SEARCH', title: 'Evaluating Neighbor Nodes', subtitle: 'Calculating Overlap Geometry', tag: 'GEOMETRIC FUSION', description: 'SHIELD sweeps neighbor nodes (CAM-04, CAM-06, CAM-TOWER-01) to find optimal alternate line of sight.' },
-  { id: 10, slug: 'COVERAGE', title: 'Autonomous PTZ Slew', subtitle: 'Perimeter Coverage Restored', tag: 'GAP HEALED', description: 'CAM-TOWER-01 actuates +32° azimuth in 1.4s, restoring 88% coverage across the compromised gully.' },
-  { id: 11, slug: 'SWAN', title: 'SWAN Distributed Intelligence', subtitle: 'One Camera is Never the End of a Track', tag: 'DISTRIBUTED BUS', description: 'SWAN coordinates adjacent sensor nodes across the border line into a unified tracking fabric.' },
-  { id: 12, slug: 'PRIORITY', title: 'Predictive Corridor Tasking', subtitle: 'Corridor Cameras Elevated', tag: 'TASKING', description: 'SWAN predicts trajectory vector. CAM-04 and CAM-06 elevated to High Priority while off-corridor cameras remain normal.' },
-  { id: 13, slug: 'HANDOFF', title: 'Seamless Track Handoff', subtitle: 'Target Re-acquired by CAM-04', tag: 'CONTINUITY', description: 'Target T-104 re-acquired with 94.2% cosine feature similarity. Persistent track ID maintained.' },
-  { id: 14, slug: 'VERIFY', title: 'Multi-Sensor Confirmation', subtitle: 'Confidence Escalation (71% → 92%)', tag: 'CONFIRMATION', description: 'Corroboration from dual sensors confirms legitimate human intruder rather than false alarm.' },
-  { id: 15, slug: 'RISK', title: 'Multi-Signal Risk Fusion', subtitle: 'Objective Threat Formulation', tag: 'RISK ENGINE', description: 'Inward velocity + buffer zone + multi-cam confirmation triggers CRITICAL risk score (92/100).' },
-  { id: 16, slug: 'INCIDENT', title: 'Unified Incident Creation', subtitle: 'Consolidated Actionable Dossier', tag: 'INCIDENT CREATED', description: 'Raw camera observations collapse into one actionable command dossier: INC-2026-0142.' },
-  { id: 17, slug: 'EVIDENCE', title: 'Cryptographic Chain of Custody', subtitle: 'SHA-256 Tamper-Proof Bundle', tag: 'FORENSICS', description: 'Synchronized clip, GPS waypoints, detection boxes, and telemetry sealed with SHA-256 HMAC for legal admissibility.' },
-  { id: 18, slug: 'COMMAND', title: 'Command Centre Ingestion', subtitle: 'Real-Time Operational Picture', tag: 'C4I CONSOLE', description: 'Data relays securely from BOP-17 edge to the Sector Command Centre GIS map and priority camera wall.' },
-  { id: 19, slug: 'OPERATOR', title: 'Human Verification & Decision', subtitle: 'Detection Automated. Decision Human.', tag: 'OPERATOR DECISION', description: 'System provides verified intelligence. Human operator confirms threat and authorizes tactical field dispatch.' }
+  { id: 1, slug: 'BOP', title: 'Arrival at BOP-17', tag: 'TERRAIN RECON', description: 'North Sector Frontier Outpost. 2.8 km perimeter fence, watchtowers, and patrol roadways.' },
+  { id: 2, slug: 'CAMERAS', title: 'Sensor Grid Online', tag: 'SENSORS ACTIVE', description: '7 optical, PTZ, and thermal sensor nodes establish active field-of-view scanning.' },
+  { id: 3, slug: 'EDGE', title: 'Ruggedized Edge AI', tag: 'LOCAL COMPUTE', description: 'Local GPU worker executes YOLOv8 detection and ByteTrack tracking with zero cloud reliance.' },
+  { id: 4, slug: 'NORMAL', title: 'Routine Patrol & Traffic', tag: 'ROUTINE PATROL', description: 'Patrol Truck V-021 and sentries move within authorized sectors. All sensors nominal.' },
+  { id: 5, slug: 'DETECT', title: 'Target Infiltration (T-104)', tag: 'TARGET DETECTED', description: 'CAM-03 detects unauthorized person T-104 approaching North Fence Alpha at 1.8 m/s.' },
+  { id: 6, slug: 'FENCE', title: 'Virtual Fence Violation', tag: 'BOUNDARY BREACH', description: 'T-104 crosses the virtual fence tripwire into restricted buffer zone. Alert state elevated.' },
+  { id: 7, slug: 'FAILURE', title: 'CAM-03 Sensor Sabotage', tag: 'SENSOR FAILURE', description: 'Physical lens tamper disables CAM-03. A 32% perimeter blind zone appears over the gully.' },
+  { id: 8, slug: 'SHIELD', title: 'SHIELD Health Diagnostics', tag: 'SELF-HEALING', description: 'SHIELD detects 3.0s timeout, classifies physical tamper, and initiates recovery sequence.' },
+  { id: 9, slug: 'SEARCH', title: 'Evaluating Neighbor Nodes', tag: 'GEOMETRIC FUSION', description: 'SHIELD sweeps neighbor nodes (CAM-04, CAM-06, CAM-TOWER-01) for overlap geometry.' },
+  { id: 10, slug: 'COVERAGE', title: 'Autonomous PTZ Healing', tag: 'GAP HEALED', description: 'CAM-TOWER-01 slews +32° azimuth in 1.4s, restoring 88% visual coverage across the gap.' },
+  { id: 11, slug: 'SWAN', title: 'SWAN Distributed Intelligence', tag: 'DISTRIBUTED BUS', description: 'SWAN coordinates adjacent sensor nodes across the border line into a continuous tracking fabric.' },
+  { id: 12, slug: 'PRIORITY', title: 'Predictive Corridor Tasking', tag: 'CORRIDOR TASKING', description: 'SWAN predicts trajectory vector. CAM-04 and CAM-06 elevated to High Priority tasking.' },
+  { id: 13, slug: 'HANDOFF', title: 'Seamless Track Handoff', tag: 'TRACK CONTINUITY', description: 'Target T-104 re-acquired by CAM-04 with 94.2% cosine feature similarity. Track ID preserved.' },
+  { id: 14, slug: 'VERIFY', title: 'Multi-Sensor Confirmation', tag: 'CONFIRMATION', description: 'Corroboration from dual sensors confirms legitimate human intruder (Confidence 71% → 92%).' },
+  { id: 15, slug: 'RISK', title: 'Multi-Signal Risk Fusion', tag: 'RISK ENGINE', description: 'Velocity + buffer zone + multi-cam confirmation triggers CRITICAL risk score (92/100).' },
+  { id: 16, slug: 'INCIDENT', title: 'Unified Incident Created', tag: 'INCIDENT DOSSIER', description: 'Raw camera observations collapse into one actionable command dossier: INC-2026-0142.' },
+  { id: 17, slug: 'EVIDENCE', title: 'SHA-256 Forensic Custody', tag: 'FORENSIC LOCK', description: 'Clip, GPS waypoints, detection boxes, and telemetry sealed with cryptographic SHA-256 HMAC.' },
+  { id: 18, slug: 'DISPATCH', title: 'Command Centre Ingestion', tag: 'ALERT TRANSMISSION', description: 'Incident packet streams across encrypted fiber mesh to the Sector Command Centre console.' },
+  { id: 19, slug: 'OPERATOR', title: 'Human Operator Decision', tag: 'OPERATOR DECISION', description: 'Detection is automated. Decision remains human. Operator verifies evidence and authorizes dispatch.' }
 ];
 
 export const DrishtiPublicLanding: React.FC = () => {
   const { cameras } = useRealtime();
   const [currentScene, setCurrentScene] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [continuousTick, setContinuousTick] = useState<number>(0);
   const [manualScroll, setManualScroll] = useState<boolean>(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -68,6 +71,17 @@ export const DrishtiPublicLanding: React.FC = () => {
   const cam4 = cameras.find(c => c.id === 'CAM-04') || cameras[3];
   const cam6 = cameras.find(c => c.id === 'CAM-06') || cameras[5];
   const camTower = cameras.find(c => c.id === 'CAM-TOWER-01') || cameras[8];
+
+  // Continuous animation frame loop for scanning radar sweeps and vehicle movement
+  useEffect(() => {
+    let animId: number;
+    const updateTick = () => {
+      setContinuousTick(prev => (prev + 1) % 3600);
+      animId = requestAnimationFrame(updateTick);
+    };
+    animId = requestAnimationFrame(updateTick);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   // Auto-play timer (advances scene every 5.5s unless paused)
   useEffect(() => {
@@ -102,14 +116,23 @@ export const DrishtiPublicLanding: React.FC = () => {
 
   const scene = SCENES[currentScene - 1];
 
-  // Dynamic simulation environment positions based on scene
+  // Continuous sweeping scan angles for cameras (simulating real CCTV sweeps)
+  const cam3ScanAngle = Math.sin(continuousTick * 0.03) * 16;
+  const cam4ScanAngle = currentScene >= 10 ? 28 + Math.sin(continuousTick * 0.04) * 8 : Math.sin(continuousTick * 0.02) * 20;
+  const cam6ScanAngle = Math.sin(continuousTick * 0.025) * 14;
+
+  // Patrol truck position along patrol road (X: 100 -> 900)
+  const truckX = (continuousTick * 0.8) % 860 + 80;
+
+  // Target T-104 position smoothly derived from currentScene
   const targetX = useMemo(() => {
-    if (currentScene < 5) return -50;
-    if (currentScene === 5) return 180; // CAM-03 area
+    if (currentScene < 5) return -80; // Off-screen before scene 5
+    if (currentScene === 5) return 180; // CAM-03 acquisition
     if (currentScene === 6) return 260; // Crossing virtual fence
     if (currentScene >= 7 && currentScene <= 10) return 330; // In gully blind zone
-    if (currentScene >= 11 && currentScene <= 14) return 460; // Re-acquired by CAM-04
-    if (currentScene >= 15) return 600; // Entering CAM-06 sector
+    if (currentScene >= 11 && currentScene <= 14) return 460; // CAM-04 corridor handoff
+    if (currentScene >= 15 && currentScene <= 17) return 620; // Approaching CAM-06
+    if (currentScene >= 18) return 720; // Ingested into Command Centre
     return 180;
   }, [currentScene]);
 
@@ -119,9 +142,13 @@ export const DrishtiPublicLanding: React.FC = () => {
     if (currentScene === 6) return 180;
     if (currentScene >= 7 && currentScene <= 10) return 195;
     if (currentScene >= 11 && currentScene <= 14) return 230;
-    if (currentScene >= 15) return 270;
+    if (currentScene >= 15 && currentScene <= 17) return 270;
+    if (currentScene >= 18) return 360;
     return 200;
   }, [currentScene]);
+
+  // Alert transmission animation progress between BOP edge (X: 740, Y: 380) and Command Centre (X: 860, Y: 120)
+  const transmissionOffset = (continuousTick * 4) % 100;
 
   return (
     <div className="h-screen w-screen bg-[#0b0d0f] text-[#e5e7eb] font-mono select-none flex flex-col overflow-hidden antialiased">
@@ -133,7 +160,7 @@ export const DrishtiPublicLanding: React.FC = () => {
           </div>
           <div>
             <span className="font-bold tracking-wider text-sm text-[#e5e7eb]">DRISHTI</span>
-            <span className="text-[10px] text-[#8d949d] ml-2 hidden sm:inline">BOP-17 CINEMATIC OPERATIONAL SIMULATION</span>
+            <span className="text-[10px] text-[#8d949d] ml-2 hidden sm:inline">BOP-17 OPERATIONAL SCENARIO V2</span>
           </div>
         </div>
 
@@ -177,7 +204,7 @@ export const DrishtiPublicLanding: React.FC = () => {
             to="/login"
             className="px-3.5 py-1 rounded bg-[#477da8] hover:bg-[#477da8]/90 text-white font-bold transition-colors flex items-center gap-1.5 text-xs shadow-sm"
           >
-            <span>ENTER COMMAND CENTRE</span>
+            <span>OPERATOR CONSOLE</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -185,66 +212,62 @@ export const DrishtiPublicLanding: React.FC = () => {
 
       {/* 2. MAIN SIMULATION & SCROLL STAGE */}
       <div className="flex-1 flex min-h-0 relative">
-        {/* Invisible Scroll Track (Drives scroll events seamlessly) */}
+        {/* Invisible Scroll Track (Drives scroll events smoothly) */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
           className="absolute inset-0 overflow-y-auto opacity-0 z-30 pointer-events-auto"
         >
-          {/* 19 height blocks to map scroll seamlessly across 0-100% */}
           <div className="h-[1200vh] w-full" />
         </div>
 
-        {/* Cinematic Simulation Viewport (Primary Visual Focus) */}
+        {/* Cinematic Simulation Viewport */}
         <div className="flex-1 flex flex-col bg-[#0b0d0f] relative overflow-hidden pointer-events-none">
-          {/* Tactical HUD Header */}
-          <div className="absolute top-4 left-4 z-20 space-y-1">
+          {/* Tactical HUD Overlay (Left Top Container - No text overlap) */}
+          <div className="absolute top-4 left-4 z-20 space-y-1.5 pointer-events-none">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#14171a]/90 border border-[#30353b] text-xs backdrop-blur">
               <span className="w-2 h-2 rounded-full bg-[#3f8f68] animate-pulse" />
-              <span className="text-[#8d949d]">SECTOR 17 OPERATIONAL THEATRE</span>
+              <span className="text-[#8d949d]">SECTOR 17 LIVE THEATRE</span>
               <span className="text-[#30353b]">|</span>
               <span className="text-[#477da8] font-bold">{scene.tag}</span>
             </div>
             <div className="text-xl md:text-2xl font-extrabold text-[#e5e7eb] tracking-tight">
               {scene.title}
             </div>
-            <div className="text-xs text-[#8d949d] max-w-md">
+            <div className="text-xs text-[#8d949d] max-w-sm sm:max-w-md leading-relaxed bg-[#14171a]/80 p-2 rounded border border-[#20242a] backdrop-blur">
               {scene.description}
             </div>
           </div>
 
           {/* Real-Time Telemetry Watermark Top Right */}
-          <div className="absolute top-4 right-4 z-20 text-right space-y-1 font-mono text-[11px] text-[#8d949d] hidden sm:block">
-            <div className="px-2.5 py-1 rounded bg-[#14171a]/90 border border-[#30353b] backdrop-blur inline-block">
-              <div>GEO: <span className="text-[#e5e7eb]">32.7325° N, 74.8645° E</span></div>
-              <div>TIME: <span className="text-[#e5e7eb]">16:48:{(12 + currentScene).toString().padStart(2, '0')} IST</span></div>
-              <div>SCENE: <span className="text-[#3f8f68] font-bold">{currentScene.toString().padStart(2, '0')} / 19</span></div>
+          <div className="absolute top-4 right-4 z-20 text-right space-y-1 font-mono text-[11px] text-[#8d949d] hidden sm:block pointer-events-none">
+            <div className="px-2.5 py-1.5 rounded bg-[#14171a]/90 border border-[#30353b] backdrop-blur inline-block space-y-0.5">
+              <div>POSITION: <span className="text-[#e5e7eb]">32.7325° N, 74.8645° E</span></div>
+              <div>EDGE LOOP: <span className="text-[#3f8f68]">100ms ICMP &bull; 24 FPS</span></div>
+              <div>STATION: <span className="text-[#e5e7eb]">BOP-17 &bull; STAGE {currentScene.toString().padStart(2, '0')}/19</span></div>
             </div>
           </div>
 
           {/* CENTRAL 2.5D ILLUSTRATED BOP SURVEILLANCE STAGE */}
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-            {/* Ambient Terrain Grid Canvas */}
+            {/* Ambient Radial Grid Canvas */}
             <div className="absolute inset-0 bg-[radial-gradient(#20242a_1px,transparent_1px)] [background-size:24px_24px] opacity-60" />
 
-            {/* SVG Operational Theatre Map Layer */}
+            {/* Main Interactive SVG Vector Stage */}
             <svg
               viewBox="0 0 1000 560"
               className="w-full h-full max-h-[72vh] object-contain transition-transform duration-700 ease-out"
             >
               <defs>
-                {/* Sector linear gradient */}
                 <linearGradient id="terrainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="#111417" />
                   <stop offset="100%" stopColor="#0b0d0f" />
                 </linearGradient>
 
-                {/* Blind zone hatch pattern */}
                 <pattern id="blindZoneHatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
                   <line x1="0" y1="0" x2="0" y2="10" stroke="#c93c3c" strokeWidth="2" opacity="0.6" />
                 </pattern>
 
-                {/* Camera coverage cone gradients */}
                 <radialGradient id="coverageNominal" cx="0%" cy="50%" r="100%">
                   <stop offset="0%" stopColor="#3f8f68" stopOpacity="0.35" />
                   <stop offset="100%" stopColor="#3f8f68" stopOpacity="0.02" />
@@ -259,7 +282,7 @@ export const DrishtiPublicLanding: React.FC = () => {
                 </radialGradient>
               </defs>
 
-              {/* 1. Terrain & Elevation Topography */}
+              {/* 1. Terrain Base */}
               <rect x="20" y="20" width="960" height="520" rx="8" fill="url(#terrainGrad)" stroke="#20242a" strokeWidth="1.5" />
 
               {/* Contour Elevation Curves */}
@@ -268,17 +291,25 @@ export const DrishtiPublicLanding: React.FC = () => {
               <path d="M 60 380 Q 260 420 580 360 T 940 400" fill="none" stroke="#1c2026" strokeWidth="1.5" />
 
               {/* 2. Perimeter Service Road */}
-              <path d="M 40 460 L 960 460" stroke="#252a32" strokeWidth="18" strokeLinecap="round" />
+              <path d="M 40 460 L 960 460" stroke="#22272e" strokeWidth="18" strokeLinecap="round" />
               <path d="M 40 460 L 960 460" stroke="#353b45" strokeWidth="1.5" strokeDasharray="8 8" />
 
-              {/* 3. Physical Linear Border Fence Alpha */}
+              {/* 3. Patrol Vehicle Truck (V-021) moving along roadway */}
+              <g transform={`translate(${truckX}, 450)`}>
+                <rect x="-16" y="-7" width="32" height="14" rx="2" fill="#1c2026" stroke="#477da8" strokeWidth="1.2" />
+                <rect x="8" y="-5" width="6" height="10" rx="1" fill="#477da8" opacity="0.6" />
+                <circle cx="-10" cy="8" r="2.5" fill="#0b0d0f" stroke="#477da8" />
+                <circle cx="10" cy="8" r="2.5" fill="#0b0d0f" stroke="#477da8" />
+                <text x="-24" y="-12" fill="#8d949d" fontSize="7" fontWeight="bold">TRUCK V-021 (PATROL)</text>
+              </g>
+
+              {/* 4. Physical Linear Border Fence Alpha */}
               <path d="M 80 170 L 920 170" stroke="#30353b" strokeWidth="4" />
-              {/* Barbed wire posts */}
               {Array.from({ length: 22 }).map((_, i) => (
                 <line key={i} x1={90 + i * 38} y1="162" x2={90 + i * 38} y2="178" stroke="#4a525d" strokeWidth="1.5" />
               ))}
 
-              {/* 4. Virtual Fence Sensor Tripwire */}
+              {/* 5. Virtual Fence Sensor Tripwire */}
               <path
                 d="M 80 140 L 920 140"
                 stroke={currentScene >= 6 ? '#c93c3c' : '#477da8'}
@@ -290,7 +321,7 @@ export const DrishtiPublicLanding: React.FC = () => {
                 VIRTUAL FENCE LINE ALPHA &bull; BUFFER TRIPWIRE (2.8 KM)
               </text>
 
-              {/* 5. BOP-17 Headquarters Outpost Complex */}
+              {/* 6. BOP-17 Command Outpost Complex */}
               <rect x="740" y="340" width="160" height="90" rx="4" fill="#181b1f" stroke="#30353b" strokeWidth="1.5" />
               <text x="755" y="365" fill="#e5e7eb" fontSize="12" fontWeight="bold">BOP-17 COMMAND</text>
               <text x="755" y="385" fill="#8d949d" fontSize="9">SECTOR 17 EDGE CLUSTER</text>
@@ -300,50 +331,56 @@ export const DrishtiPublicLanding: React.FC = () => {
               <rect x="420" y="320" width="40" height="40" fill="#1e2228" stroke="#30353b" strokeWidth="1.5" />
               <text x="410" y="375" fill="#8d949d" fontSize="9">WATCH TOWER 01</text>
 
-              {/* 6. Active Camera Field-of-View (FOV) Cones */}
+              {/* 7. Active Camera Field-of-View (FOV) Cones with Dynamic Sweeps */}
               {/* CAM-03 Coverage Cone */}
               {currentScene >= 2 && currentScene < 7 && (
-                <path d="M 180 280 L 100 120 L 260 120 Z" fill="url(#coverageNominal)" stroke="#3f8f68" strokeWidth="1" opacity="0.8" />
+                <g transform={`rotate(${cam3ScanAngle}, 180, 280)`}>
+                  <path d="M 180 280 L 90 120 L 270 120 Z" fill="url(#coverageNominal)" stroke="#3f8f68" strokeWidth="1" opacity="0.8" />
+                </g>
               )}
 
-              {/* CAM-03 BLIND ZONE (appears when CAM-03 fails) */}
+              {/* CAM-03 Blind Zone (appears when CAM-03 fails) */}
               {currentScene >= 7 && (
-                <path d="M 180 280 L 100 120 L 260 120 Z" fill="url(#blindZoneHatch)" stroke="#c93c3c" strokeWidth="1.5" />
+                <path d="M 180 280 L 90 120 L 270 120 Z" fill="url(#blindZoneHatch)" stroke="#c93c3c" strokeWidth="1.5" />
               )}
 
-              {/* CAM-04 Coverage Cone (expands / activates on handoff) */}
+              {/* CAM-04 Coverage Cone */}
               {currentScene >= 2 && (
-                <path
-                  d="M 440 280 L 320 120 L 560 120 Z"
-                  fill={currentScene >= 10 ? 'url(#coverageElevated)' : 'url(#coverageNominal)'}
-                  stroke={currentScene >= 10 ? '#477da8' : '#3f8f68'}
-                  strokeWidth={currentScene >= 10 ? '2' : '1'}
-                  opacity={currentScene >= 10 ? 0.9 : 0.6}
-                />
+                <g transform={`rotate(${cam4ScanAngle}, 440, 280)`}>
+                  <path
+                    d="M 440 280 L 320 120 L 560 120 Z"
+                    fill={currentScene >= 10 ? 'url(#coverageElevated)' : 'url(#coverageNominal)'}
+                    stroke={currentScene >= 10 ? '#477da8' : '#3f8f68'}
+                    strokeWidth={currentScene >= 10 ? '2' : '1'}
+                    opacity={currentScene >= 10 ? 0.9 : 0.6}
+                  />
+                </g>
               )}
 
               {/* CAM-TOWER-01 Backup PTZ Slewed Cone (SHIELD restoration) */}
               {currentScene >= 8 && (
-                <path d="M 440 320 L 160 150 L 320 150 Z" fill="url(#coverageElevated)" stroke="#477da8" strokeWidth="1.5" strokeDasharray="4 2" />
+                <path d="M 440 320 L 150 150 L 330 150 Z" fill="url(#coverageElevated)" stroke="#477da8" strokeWidth="1.5" strokeDasharray="4 2" />
               )}
 
               {/* CAM-06 Downstream Predicted Coverage Cone */}
               {currentScene >= 2 && (
-                <path
-                  d="M 700 280 L 560 130 L 840 130 Z"
-                  fill={currentScene >= 12 ? 'url(#coverageWarning)' : 'url(#coverageNominal)'}
-                  stroke={currentScene >= 12 ? '#c28a28' : '#3f8f68'}
-                  strokeWidth="1"
-                  opacity={currentScene >= 12 ? 0.8 : 0.4}
-                />
+                <g transform={`rotate(${cam6ScanAngle}, 700, 280)`}>
+                  <path
+                    d="M 700 280 L 560 130 L 840 130 Z"
+                    fill={currentScene >= 12 ? 'url(#coverageWarning)' : 'url(#coverageNominal)'}
+                    stroke={currentScene >= 12 ? '#c28a28' : '#3f8f68'}
+                    strokeWidth="1"
+                    opacity={currentScene >= 12 ? 0.8 : 0.4}
+                  />
+                </g>
               )}
 
-              {/* 7. Camera Node Markers */}
+              {/* 8. Camera Markers */}
               {/* CAM-03 */}
               <g transform="translate(180, 280)">
                 <circle r="8" fill={currentScene >= 7 ? '#c93c3c' : '#181b1f'} stroke={currentScene >= 7 ? '#ffffff' : '#3f8f68'} strokeWidth="2" />
                 <text x="12" y="4" fill={currentScene >= 7 ? '#c93c3c' : '#e5e7eb'} fontSize="10" fontWeight="bold">
-                  CAM-03 {currentScene >= 7 ? '(OFFLINE)' : ''}
+                  CAM-03 {currentScene >= 7 ? '(OFFLINE)' : '(IR THERMAL)'}
                 </text>
               </g>
 
@@ -351,7 +388,7 @@ export const DrishtiPublicLanding: React.FC = () => {
               <g transform="translate(440, 280)">
                 <circle r="8" fill="#181b1f" stroke={currentScene >= 10 ? '#477da8' : '#3f8f68'} strokeWidth={currentScene >= 10 ? '3' : '2'} />
                 <text x="12" y="4" fill="#e5e7eb" fontSize="10" fontWeight="bold">
-                  CAM-04 {currentScene >= 10 ? '(HIGH PRIORITY)' : ''}
+                  CAM-04 {currentScene >= 10 ? '(HIGH PRIORITY)' : '(PTZ DOME)'}
                 </text>
               </g>
 
@@ -359,14 +396,14 @@ export const DrishtiPublicLanding: React.FC = () => {
               <g transform="translate(700, 280)">
                 <circle r="8" fill="#181b1f" stroke={currentScene >= 12 ? '#c28a28' : '#3f8f68'} strokeWidth={currentScene >= 12 ? '2.5' : '1.5'} />
                 <text x="12" y="4" fill="#e5e7eb" fontSize="10" fontWeight="bold">
-                  CAM-06 {currentScene >= 12 ? '(PREDICTED INTERCEPT)' : ''}
+                  CAM-06 {currentScene >= 12 ? '(PREDICTED INTERCEPT)' : '(FIXED CCTV)'}
                 </text>
               </g>
 
-              {/* 8. Moving Target T-104 & Trajectory Vector */}
+              {/* 9. Moving Target T-104 (Infiltrator) */}
               {currentScene >= 5 && (
                 <>
-                  {/* Trajectory line from origin */}
+                  {/* Historical Trajectory Path */}
                   <path
                     d={`M 140 210 Q 220 190 ${targetX} ${targetY}`}
                     fill="none"
@@ -375,7 +412,7 @@ export const DrishtiPublicLanding: React.FC = () => {
                     strokeDasharray="4 4"
                   />
 
-                  {/* Predicted forward intercept path */}
+                  {/* Predicted forward intercept vector */}
                   {currentScene >= 12 && (
                     <path
                       d={`M ${targetX} ${targetY} Q 540 260 680 270`}
@@ -386,7 +423,7 @@ export const DrishtiPublicLanding: React.FC = () => {
                     />
                   )}
 
-                  {/* Target Crosshair Marker */}
+                  {/* Target Crosshair & Bounding Box */}
                   <g transform={`translate(${targetX}, ${targetY})`} className="transition-all duration-700 ease-out">
                     <circle r="9" fill="none" stroke="#c93c3c" strokeWidth="2" />
                     <line x1="-12" y1="0" x2="12" y2="0" stroke="#c93c3c" strokeWidth="1.5" />
@@ -398,38 +435,27 @@ export const DrishtiPublicLanding: React.FC = () => {
                 </>
               )}
 
-              {/* 9. Dynamic System Callout Badges */}
-              {/* Blind Zone Alert */}
-              {currentScene >= 7 && currentScene < 10 && (
-                <g transform="translate(140, 90)">
-                  <rect width="180" height="34" rx="4" fill="#14171a" stroke="#c93c3c" strokeWidth="1.5" />
-                  <text x="12" y="16" fill="#c93c3c" fontSize="10" fontWeight="bold">PERIMETER BLIND ZONE</text>
-                  <text x="12" y="28" fill="#8d949d" fontSize="9">32% Coverage Lost on CAM-03</text>
-                </g>
-              )}
+              {/* 10. SCENE 18 & 19: Alert Transmission Stream to Command Centre */}
+              {currentScene >= 18 && (
+                <>
+                  <path d="M 820 340 L 880 180" stroke="#477da8" strokeWidth="2" strokeDasharray="4 4" />
+                  <circle cx={820 + (880 - 820) * (transmissionOffset / 100)} cy={340 + (180 - 340) * (transmissionOffset / 100)} r="4" fill="#477da8" className="animate-ping" />
 
-              {/* SHIELD Restoration Banner */}
-              {currentScene >= 10 && currentScene < 12 && (
-                <g transform="translate(360, 90)">
-                  <rect width="210" height="34" rx="4" fill="#14171a" stroke="#3f8f68" strokeWidth="1.5" />
-                  <text x="12" y="16" fill="#3f8f68" fontSize="10" fontWeight="bold">SHIELD: COVERAGE RESTORED</text>
-                  <text x="12" y="28" fill="#8d949d" fontSize="9">CAM-TOWER-01 Slewed +32°</text>
-                </g>
-              )}
-
-              {/* SWAN Handoff Banner */}
-              {currentScene >= 13 && currentScene < 16 && (
-                <g transform="translate(480, 90)">
-                  <rect width="220" height="34" rx="4" fill="#14171a" stroke="#477da8" strokeWidth="1.5" />
-                  <text x="12" y="16" fill="#477da8" fontSize="10" fontWeight="bold">SWAN: CORRIDOR HANDOFF</text>
-                  <text x="12" y="28" fill="#8d949d" fontSize="9">CAM-04 Confirms &bull; CAM-06 Next</text>
-                </g>
+                  {/* Command Centre Ingestion HUD */}
+                  <g transform="translate(820, 80)">
+                    <rect width="140" height="75" rx="4" fill="#14171a" stroke="#477da8" strokeWidth="1.5" />
+                    <text x="10" y="20" fill="#477da8" fontSize="10" fontWeight="bold">COMMAND HQ</text>
+                    <text x="10" y="34" fill="#c93c3c" fontSize="9" fontWeight="bold">INC-2026-0142</text>
+                    <text x="10" y="48" fill="#3f8f68" fontSize="8">TARGET: T-104 CONFIRMED</text>
+                    <text x="10" y="62" fill="#e5e7eb" fontSize="8">AWAITING OPERATOR</text>
+                  </g>
+                </>
               )}
             </svg>
           </div>
 
-          {/* Picture-in-Picture Tactical Feed Overlay */}
-          <div className="absolute bottom-16 right-4 z-20 w-64 md:w-72 bg-[#14171a]/95 border border-[#30353b] rounded overflow-hidden shadow-2xl backdrop-blur hidden sm:block">
+          {/* Picture-in-Picture CCTV Surveillance Inset (Bottom Right) */}
+          <div className="absolute bottom-16 right-4 z-20 w-64 md:w-72 bg-[#14171a]/95 border border-[#30353b] rounded overflow-hidden shadow-2xl backdrop-blur hidden sm:block pointer-events-auto">
             <div className="p-1.5 bg-[#181b1f] border-b border-[#30353b] flex items-center justify-between text-[10px]">
               <span className="font-bold text-[#e5e7eb] flex items-center gap-1">
                 <Video className="w-3 h-3 text-[#477da8]" />
