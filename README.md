@@ -6,6 +6,20 @@ DRISHTI is an operational Command-and-Control (C4I) platform for intelligent bor
 
 ---
 
+### 🌐 Live Production Deployment
+
+| Service | Verified Production URL | Status |
+|---|---|---|
+| **Public Cinematic Story** | [https://number-three-opal.vercel.app](https://number-three-opal.vercel.app) | 🟢 LIVE |
+| **Command Centre** | [https://number-three-opal.vercel.app/app/command](https://number-three-opal.vercel.app/app/command) | 🟢 LIVE |
+| **SWAN Multi-Camera Coordination** | [https://number-three-opal.vercel.app/app/swan/overview](https://number-three-opal.vercel.app/app/swan/overview) | 🟢 LIVE |
+| **SHIELD Self-Healing Recovery** | [https://number-three-opal.vercel.app/app/shield/overview](https://number-three-opal.vercel.app/app/shield/overview) | 🟢 LIVE |
+| **Operator Terminal Login** | [https://number-three-opal.vercel.app/login](https://number-three-opal.vercel.app/login) | 🟢 LIVE |
+| **GitHub Repository** | [https://github.com/Srinidh19/DRISHTI_1.git](https://github.com/Srinidh19/DRISHTI_1.git) | 🟢 CONNECTED |
+| **Hosting Platform** | **Vercel** (`akulasahadev85-3512s-projects/number`) | 🟢 AUTO-DEPLOY |
+
+---
+
 ## 1. System Architecture
 
 ```text
