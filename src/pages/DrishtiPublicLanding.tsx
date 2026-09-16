@@ -1,748 +1,515 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Radio,
-  Eye,
+  Play,
+  Pause,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
   Shield,
   ShieldAlert,
   ArrowRight,
   Zap,
   CheckCircle2,
-  Server,
   Lock,
   Compass,
   AlertTriangle,
-  Play,
-  RotateCcw,
-  Activity,
-  Layers,
-  ChevronDown,
-  ExternalLink,
+  EyeOff,
   Video,
-  EyeOff
+  ExternalLink,
+  Layers,
+  Server,
+  Activity,
+  Maximize2
 } from 'lucide-react';
 import { CameraFeed } from '../components/video/CameraFeed';
 import { useRealtime } from '../context/RealtimeContext';
+
+interface SceneMeta {
+  id: number;
+  slug: string;
+  title: string;
+  subtitle: string;
+  tag: string;
+  description: string;
+}
+
+const SCENES: SceneMeta[] = [
+  { id: 1, slug: 'BOP', title: 'Arrival at BOP-17', subtitle: 'North Sector Frontier Outpost', tag: 'TERRAIN RECON', description: '2.8 km border sector. Undulating terrain, access roadway, watchtowers, and linear border fence.' },
+  { id: 2, slug: 'CAMERAS', title: 'Perimeter Sensor Grid', subtitle: 'Sensors Come Online', tag: 'SENSOR GRID', description: '7 multi-spectral sensor nodes activate. Fixed CCTV, optical PTZ domes, and thermal barriers establish coverage.' },
+  { id: 3, slug: 'EDGE', title: 'Ruggedized Edge Appliance', subtitle: 'BOP Inference Gateway', tag: 'LOCAL COMPUTE', description: 'Local GPU node runs YOLOv8, ByteTrack, SWAN consensus, and SHIELD health loops with zero cloud reliance.' },
+  { id: 4, slug: 'MONITOR', title: 'Normal Surveillance State', subtitle: 'All Sectors Nominal', tag: 'SURVEILLANCE', description: 'Continuous optical/thermal scanning. Zero border boundary violations detected.' },
+  { id: 5, slug: 'DETECT', title: 'Target Enters Monitored Zone', subtitle: 'CAM-03 Acquires T-104', tag: 'TARGET DETECTED', description: 'Single thermal signature detected approaching sector fence line at 1.8 m/s.' },
+  { id: 6, slug: 'FENCE', title: 'Virtual Fence Violation', subtitle: 'Border Barrier Breach', tag: 'BOUNDARY EVENT', description: 'T-104 crosses the virtual fence tripwire into restricted buffer zone. Alert state elevated.' },
+  { id: 7, slug: 'FAILURE', title: 'CAM-03 Sensor Sabotage', subtitle: 'Heartbeat Lost & Blind Zone', tag: 'SENSOR FAILURE', description: 'Physical spray/tamper disables CAM-03. A 32% perimeter blind zone appears while T-104 is moving.' },
+  { id: 8, slug: 'SHIELD', title: 'SHIELD Health Diagnostics', subtitle: 'Autonomous Fault Classification', tag: 'SELF-HEALING', description: 'SHIELD detects 3.0s timeout, classifies physical tamper, and measures residual blind zone.' },
+  { id: 9, slug: 'SEARCH', title: 'Evaluating Neighbor Nodes', subtitle: 'Calculating Overlap Geometry', tag: 'GEOMETRIC FUSION', description: 'SHIELD sweeps neighbor nodes (CAM-04, CAM-06, CAM-TOWER-01) to find optimal alternate line of sight.' },
+  { id: 10, slug: 'COVERAGE', title: 'Autonomous PTZ Slew', subtitle: 'Perimeter Coverage Restored', tag: 'GAP HEALED', description: 'CAM-TOWER-01 actuates +32° azimuth in 1.4s, restoring 88% coverage across the compromised gully.' },
+  { id: 11, slug: 'SWAN', title: 'SWAN Distributed Intelligence', subtitle: 'One Camera is Never the End of a Track', tag: 'DISTRIBUTED BUS', description: 'SWAN coordinates adjacent sensor nodes across the border line into a unified tracking fabric.' },
+  { id: 12, slug: 'PRIORITY', title: 'Predictive Corridor Tasking', subtitle: 'Corridor Cameras Elevated', tag: 'TASKING', description: 'SWAN predicts trajectory vector. CAM-04 and CAM-06 elevated to High Priority while off-corridor cameras remain normal.' },
+  { id: 13, slug: 'HANDOFF', title: 'Seamless Track Handoff', subtitle: 'Target Re-acquired by CAM-04', tag: 'CONTINUITY', description: 'Target T-104 re-acquired with 94.2% cosine feature similarity. Persistent track ID maintained.' },
+  { id: 14, slug: 'VERIFY', title: 'Multi-Sensor Confirmation', subtitle: 'Confidence Escalation (71% → 92%)', tag: 'CONFIRMATION', description: 'Corroboration from dual sensors confirms legitimate human intruder rather than false alarm.' },
+  { id: 15, slug: 'RISK', title: 'Multi-Signal Risk Fusion', subtitle: 'Objective Threat Formulation', tag: 'RISK ENGINE', description: 'Inward velocity + buffer zone + multi-cam confirmation triggers CRITICAL risk score (92/100).' },
+  { id: 16, slug: 'INCIDENT', title: 'Unified Incident Creation', subtitle: 'Consolidated Actionable Dossier', tag: 'INCIDENT CREATED', description: 'Raw camera observations collapse into one actionable command dossier: INC-2026-0142.' },
+  { id: 17, slug: 'EVIDENCE', title: 'Cryptographic Chain of Custody', subtitle: 'SHA-256 Tamper-Proof Bundle', tag: 'FORENSICS', description: 'Synchronized clip, GPS waypoints, detection boxes, and telemetry sealed with SHA-256 HMAC for legal admissibility.' },
+  { id: 18, slug: 'COMMAND', title: 'Command Centre Ingestion', subtitle: 'Real-Time Operational Picture', tag: 'C4I CONSOLE', description: 'Data relays securely from BOP-17 edge to the Sector Command Centre GIS map and priority camera wall.' },
+  { id: 19, slug: 'OPERATOR', title: 'Human Verification & Decision', subtitle: 'Detection Automated. Decision Human.', tag: 'OPERATOR DECISION', description: 'System provides verified intelligence. Human operator confirms threat and authorizes tactical field dispatch.' }
+];
 
 export const DrishtiPublicLanding: React.FC = () => {
   const { cameras } = useRealtime();
   const [currentScene, setCurrentScene] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [manualScroll, setManualScroll] = useState<boolean>(false);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const cam3 = cameras.find(c => c.id === 'CAM-03') || cameras[2];
   const cam4 = cameras.find(c => c.id === 'CAM-04') || cameras[3];
   const cam6 = cameras.find(c => c.id === 'CAM-06') || cameras[5];
   const camTower = cameras.find(c => c.id === 'CAM-TOWER-01') || cameras[8];
 
-  // Auto-progress simulation scenes every 5 seconds if playing
+  // Auto-play timer (advances scene every 5.5s unless paused)
   useEffect(() => {
     if (!isPlaying) return;
-    const interval = setInterval(() => {
+    const timer = setInterval(() => {
       setCurrentScene(prev => (prev >= 19 ? 1 : prev + 1));
     }, 5500);
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [isPlaying]);
 
-  const sceneTitles = [
-    '01. Arrival at BOP-17',
-    '02. Sensor Perimeter Online',
-    '03. Ruggedized Edge Node',
-    '04. Normal Surveillance Grid',
-    '05. First Breach Detected (T-104)',
-    '06. Sensor Sabotage (CAM-03 Loss)',
-    '07. SHIELD Fault Classification',
-    '08. Autonomous PTZ Healing',
-    '09. SWAN Distributed Fusion',
-    '10. Neighbor Camera Prioritization',
-    '11. Seamless Vector Handoff',
-    '12. Multi-Sensor Confirmation',
-    '13. Multi-Signal Threat Fusion',
-    '14. Consolidated Incident Created',
-    '15. SHA-256 Chain of Custody',
-    '16. Secure Sector Relay',
-    '17. Human Operator Doctrine',
-    '18. Multi-BOP Scalable Network',
-    '19. Deployment Architecture'
-  ];
+  // Sync scroll position when currentScene changes
+  useEffect(() => {
+    if (!scrollContainerRef.current || manualScroll) return;
+    const targetScroll = ((currentScene - 1) / 18) * (scrollContainerRef.current.scrollHeight - scrollContainerRef.current.clientHeight);
+    scrollContainerRef.current.scrollTo({ top: targetScroll, behavior: 'smooth' });
+  }, [currentScene, manualScroll]);
+
+  // Handle manual scroll to calculate interpolated scene
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setManualScroll(true);
+    const container = e.currentTarget;
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    if (maxScroll <= 0) return;
+    const scrollRatio = container.scrollTop / maxScroll;
+    const calculatedScene = Math.min(19, Math.max(1, Math.round(scrollRatio * 18) + 1));
+    if (calculatedScene !== currentScene) {
+      setCurrentScene(calculatedScene);
+      setIsPlaying(false);
+    }
+    setTimeout(() => setManualScroll(false), 300);
+  };
+
+  const scene = SCENES[currentScene - 1];
+
+  // Dynamic simulation environment positions based on scene
+  const targetX = useMemo(() => {
+    if (currentScene < 5) return -50;
+    if (currentScene === 5) return 180; // CAM-03 area
+    if (currentScene === 6) return 260; // Crossing virtual fence
+    if (currentScene >= 7 && currentScene <= 10) return 330; // In gully blind zone
+    if (currentScene >= 11 && currentScene <= 14) return 460; // Re-acquired by CAM-04
+    if (currentScene >= 15) return 600; // Entering CAM-06 sector
+    return 180;
+  }, [currentScene]);
+
+  const targetY = useMemo(() => {
+    if (currentScene < 5) return 220;
+    if (currentScene === 5) return 200;
+    if (currentScene === 6) return 180;
+    if (currentScene >= 7 && currentScene <= 10) return 195;
+    if (currentScene >= 11 && currentScene <= 14) return 230;
+    if (currentScene >= 15) return 270;
+    return 200;
+  }, [currentScene]);
 
   return (
-    <div className="min-h-screen w-full bg-[#0d0f11] text-[#e5e7eb] font-mono select-none flex flex-col antialiased">
-      {/* Tactical Top Bar */}
-      <header className="sticky top-0 z-50 h-14 bg-[#14171a]/95 backdrop-blur border-b border-[#30353b] px-4 md:px-8 flex items-center justify-between text-xs">
+    <div className="h-screen w-screen bg-[#0b0d0f] text-[#e5e7eb] font-mono select-none flex flex-col overflow-hidden antialiased">
+      {/* 1. TOP MINIMAL NAVIGATION BAR */}
+      <header className="h-12 bg-[#121417]/95 border-b border-[#282c33] px-4 md:px-6 flex items-center justify-between shrink-0 z-40 text-xs">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded bg-[#181b1f] border border-[#30353b] flex items-center justify-center">
-            <Radio className="w-4 h-4 text-[#477da8]" />
+          <div className="w-6 h-6 rounded bg-[#181b1f] border border-[#30353b] flex items-center justify-center">
+            <Radio className="w-3.5 h-3.5 text-[#477da8]" />
           </div>
           <div>
             <span className="font-bold tracking-wider text-sm text-[#e5e7eb]">DRISHTI</span>
-            <span className="text-[10px] text-[#8d949d] ml-2 hidden sm:inline">BORDER C4I OPERATIONAL SIMULATION</span>
+            <span className="text-[10px] text-[#8d949d] ml-2 hidden sm:inline">BOP-17 CINEMATIC OPERATIONAL SIMULATION</span>
           </div>
         </div>
 
-        {/* Scene Quick Switcher */}
-        <div className="hidden lg:flex items-center gap-2 text-[11px] text-[#8d949d]">
-          <span className="text-[#3f8f68] font-bold">SCENE {currentScene.toString().padStart(2, '0')}/19:</span>
-          <span className="text-[#e5e7eb] font-semibold">{sceneTitles[currentScene - 1]}</span>
-        </div>
-
-        <div className="flex items-center gap-3">
+        {/* Playback Controls */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="px-2.5 py-1 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] text-xs flex items-center gap-1.5 transition-colors"
+            className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              isPlaying
+                ? 'bg-[#3f8f68]/20 text-[#3f8f68] border border-[#3f8f68]/50'
+                : 'bg-[#20242a] text-[#e5e7eb] border border-[#30353b] hover:bg-[#30353b]'
+            }`}
           >
             {isPlaying ? (
               <>
-                <span className="w-2 h-2 rounded-full bg-[#3f8f68] animate-pulse" />
-                <span>AUTO-PLAY ON</span>
+                <Pause className="w-3.5 h-3.5" />
+                <span>PAUSE</span>
               </>
             ) : (
               <>
-                <Play className="w-3 h-3 text-[#c28a28]" />
-                <span>PAUSED</span>
+                <Play className="w-3.5 h-3.5 text-[#3f8f68]" />
+                <span>PLAY SCENARIO</span>
               </>
             )}
           </button>
 
+          <button
+            onClick={() => {
+              setCurrentScene(1);
+              setIsPlaying(true);
+            }}
+            title="Restart Scenario"
+            className="p-1 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="h-4 w-px bg-[#282c33] mx-1 hidden sm:block" />
+
           <Link
             to="/login"
-            className="px-3.5 py-1.5 rounded bg-[#477da8] hover:bg-[#477da8]/90 text-white font-bold transition-colors flex items-center gap-1.5 text-xs"
+            className="px-3.5 py-1 rounded bg-[#477da8] hover:bg-[#477da8]/90 text-white font-bold transition-colors flex items-center gap-1.5 text-xs shadow-sm"
           >
-            <span>ENTER COMMAND</span>
+            <span>ENTER COMMAND CENTRE</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </header>
 
-      {/* Main Interactive Simulation Canvas */}
-      <main className="flex-1 flex flex-col max-w-7xl w-full mx-auto p-4 md:p-6 gap-4">
-        {/* Story Scrubber Bar */}
-        <div className="bg-[#14171a] border border-[#30353b] rounded p-2.5 flex items-center justify-between overflow-x-auto gap-1 text-[10px]">
-          {sceneTitles.map((title, idx) => {
-            const stepNum = idx + 1;
-            const isActive = currentScene === stepNum;
+      {/* 2. MAIN SIMULATION & SCROLL STAGE */}
+      <div className="flex-1 flex min-h-0 relative">
+        {/* Invisible Scroll Track (Drives scroll events seamlessly) */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="absolute inset-0 overflow-y-auto opacity-0 z-30 pointer-events-auto"
+        >
+          {/* 19 height blocks to map scroll seamlessly across 0-100% */}
+          <div className="h-[1200vh] w-full" />
+        </div>
+
+        {/* Cinematic Simulation Viewport (Primary Visual Focus) */}
+        <div className="flex-1 flex flex-col bg-[#0b0d0f] relative overflow-hidden pointer-events-none">
+          {/* Tactical HUD Header */}
+          <div className="absolute top-4 left-4 z-20 space-y-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#14171a]/90 border border-[#30353b] text-xs backdrop-blur">
+              <span className="w-2 h-2 rounded-full bg-[#3f8f68] animate-pulse" />
+              <span className="text-[#8d949d]">SECTOR 17 OPERATIONAL THEATRE</span>
+              <span className="text-[#30353b]">|</span>
+              <span className="text-[#477da8] font-bold">{scene.tag}</span>
+            </div>
+            <div className="text-xl md:text-2xl font-extrabold text-[#e5e7eb] tracking-tight">
+              {scene.title}
+            </div>
+            <div className="text-xs text-[#8d949d] max-w-md">
+              {scene.description}
+            </div>
+          </div>
+
+          {/* Real-Time Telemetry Watermark Top Right */}
+          <div className="absolute top-4 right-4 z-20 text-right space-y-1 font-mono text-[11px] text-[#8d949d] hidden sm:block">
+            <div className="px-2.5 py-1 rounded bg-[#14171a]/90 border border-[#30353b] backdrop-blur inline-block">
+              <div>GEO: <span className="text-[#e5e7eb]">32.7325° N, 74.8645° E</span></div>
+              <div>TIME: <span className="text-[#e5e7eb]">16:48:{(12 + currentScene).toString().padStart(2, '0')} IST</span></div>
+              <div>SCENE: <span className="text-[#3f8f68] font-bold">{currentScene.toString().padStart(2, '0')} / 19</span></div>
+            </div>
+          </div>
+
+          {/* CENTRAL 2.5D ILLUSTRATED BOP SURVEILLANCE STAGE */}
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+            {/* Ambient Terrain Grid Canvas */}
+            <div className="absolute inset-0 bg-[radial-gradient(#20242a_1px,transparent_1px)] [background-size:24px_24px] opacity-60" />
+
+            {/* SVG Operational Theatre Map Layer */}
+            <svg
+              viewBox="0 0 1000 560"
+              className="w-full h-full max-h-[72vh] object-contain transition-transform duration-700 ease-out"
+            >
+              <defs>
+                {/* Sector linear gradient */}
+                <linearGradient id="terrainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#111417" />
+                  <stop offset="100%" stopColor="#0b0d0f" />
+                </linearGradient>
+
+                {/* Blind zone hatch pattern */}
+                <pattern id="blindZoneHatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="10" stroke="#c93c3c" strokeWidth="2" opacity="0.6" />
+                </pattern>
+
+                {/* Camera coverage cone gradients */}
+                <radialGradient id="coverageNominal" cx="0%" cy="50%" r="100%">
+                  <stop offset="0%" stopColor="#3f8f68" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#3f8f68" stopOpacity="0.02" />
+                </radialGradient>
+                <radialGradient id="coverageElevated" cx="0%" cy="50%" r="100%">
+                  <stop offset="0%" stopColor="#477da8" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#477da8" stopOpacity="0.05" />
+                </radialGradient>
+                <radialGradient id="coverageWarning" cx="0%" cy="50%" r="100%">
+                  <stop offset="0%" stopColor="#c28a28" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#c28a28" stopOpacity="0.05" />
+                </radialGradient>
+              </defs>
+
+              {/* 1. Terrain & Elevation Topography */}
+              <rect x="20" y="20" width="960" height="520" rx="8" fill="url(#terrainGrad)" stroke="#20242a" strokeWidth="1.5" />
+
+              {/* Contour Elevation Curves */}
+              <path d="M 60 140 Q 280 180 500 130 T 940 160" fill="none" stroke="#1c2026" strokeWidth="1.5" />
+              <path d="M 60 260 Q 320 220 540 280 T 940 240" fill="none" stroke="#1c2026" strokeWidth="1.5" />
+              <path d="M 60 380 Q 260 420 580 360 T 940 400" fill="none" stroke="#1c2026" strokeWidth="1.5" />
+
+              {/* 2. Perimeter Service Road */}
+              <path d="M 40 460 L 960 460" stroke="#252a32" strokeWidth="18" strokeLinecap="round" />
+              <path d="M 40 460 L 960 460" stroke="#353b45" strokeWidth="1.5" strokeDasharray="8 8" />
+
+              {/* 3. Physical Linear Border Fence Alpha */}
+              <path d="M 80 170 L 920 170" stroke="#30353b" strokeWidth="4" />
+              {/* Barbed wire posts */}
+              {Array.from({ length: 22 }).map((_, i) => (
+                <line key={i} x1={90 + i * 38} y1="162" x2={90 + i * 38} y2="178" stroke="#4a525d" strokeWidth="1.5" />
+              ))}
+
+              {/* 4. Virtual Fence Sensor Tripwire */}
+              <path
+                d="M 80 140 L 920 140"
+                stroke={currentScene >= 6 ? '#c93c3c' : '#477da8'}
+                strokeWidth={currentScene >= 6 ? '2.5' : '1.5'}
+                strokeDasharray="6 4"
+                className={currentScene >= 6 ? 'animate-pulse' : ''}
+              />
+              <text x="90" y="132" fill={currentScene >= 6 ? '#c93c3c' : '#477da8'} fontSize="9" fontWeight="bold">
+                VIRTUAL FENCE LINE ALPHA &bull; BUFFER TRIPWIRE (2.8 KM)
+              </text>
+
+              {/* 5. BOP-17 Headquarters Outpost Complex */}
+              <rect x="740" y="340" width="160" height="90" rx="4" fill="#181b1f" stroke="#30353b" strokeWidth="1.5" />
+              <text x="755" y="365" fill="#e5e7eb" fontSize="12" fontWeight="bold">BOP-17 COMMAND</text>
+              <text x="755" y="385" fill="#8d949d" fontSize="9">SECTOR 17 EDGE CLUSTER</text>
+              <circle cx="875" cy="365" r="4" fill="#3f8f68" className="animate-ping" />
+
+              {/* Watch Tower Structure */}
+              <rect x="420" y="320" width="40" height="40" fill="#1e2228" stroke="#30353b" strokeWidth="1.5" />
+              <text x="410" y="375" fill="#8d949d" fontSize="9">WATCH TOWER 01</text>
+
+              {/* 6. Active Camera Field-of-View (FOV) Cones */}
+              {/* CAM-03 Coverage Cone */}
+              {currentScene >= 2 && currentScene < 7 && (
+                <path d="M 180 280 L 100 120 L 260 120 Z" fill="url(#coverageNominal)" stroke="#3f8f68" strokeWidth="1" opacity="0.8" />
+              )}
+
+              {/* CAM-03 BLIND ZONE (appears when CAM-03 fails) */}
+              {currentScene >= 7 && (
+                <path d="M 180 280 L 100 120 L 260 120 Z" fill="url(#blindZoneHatch)" stroke="#c93c3c" strokeWidth="1.5" />
+              )}
+
+              {/* CAM-04 Coverage Cone (expands / activates on handoff) */}
+              {currentScene >= 2 && (
+                <path
+                  d="M 440 280 L 320 120 L 560 120 Z"
+                  fill={currentScene >= 10 ? 'url(#coverageElevated)' : 'url(#coverageNominal)'}
+                  stroke={currentScene >= 10 ? '#477da8' : '#3f8f68'}
+                  strokeWidth={currentScene >= 10 ? '2' : '1'}
+                  opacity={currentScene >= 10 ? 0.9 : 0.6}
+                />
+              )}
+
+              {/* CAM-TOWER-01 Backup PTZ Slewed Cone (SHIELD restoration) */}
+              {currentScene >= 8 && (
+                <path d="M 440 320 L 160 150 L 320 150 Z" fill="url(#coverageElevated)" stroke="#477da8" strokeWidth="1.5" strokeDasharray="4 2" />
+              )}
+
+              {/* CAM-06 Downstream Predicted Coverage Cone */}
+              {currentScene >= 2 && (
+                <path
+                  d="M 700 280 L 560 130 L 840 130 Z"
+                  fill={currentScene >= 12 ? 'url(#coverageWarning)' : 'url(#coverageNominal)'}
+                  stroke={currentScene >= 12 ? '#c28a28' : '#3f8f68'}
+                  strokeWidth="1"
+                  opacity={currentScene >= 12 ? 0.8 : 0.4}
+                />
+              )}
+
+              {/* 7. Camera Node Markers */}
+              {/* CAM-03 */}
+              <g transform="translate(180, 280)">
+                <circle r="8" fill={currentScene >= 7 ? '#c93c3c' : '#181b1f'} stroke={currentScene >= 7 ? '#ffffff' : '#3f8f68'} strokeWidth="2" />
+                <text x="12" y="4" fill={currentScene >= 7 ? '#c93c3c' : '#e5e7eb'} fontSize="10" fontWeight="bold">
+                  CAM-03 {currentScene >= 7 ? '(OFFLINE)' : ''}
+                </text>
+              </g>
+
+              {/* CAM-04 */}
+              <g transform="translate(440, 280)">
+                <circle r="8" fill="#181b1f" stroke={currentScene >= 10 ? '#477da8' : '#3f8f68'} strokeWidth={currentScene >= 10 ? '3' : '2'} />
+                <text x="12" y="4" fill="#e5e7eb" fontSize="10" fontWeight="bold">
+                  CAM-04 {currentScene >= 10 ? '(HIGH PRIORITY)' : ''}
+                </text>
+              </g>
+
+              {/* CAM-06 */}
+              <g transform="translate(700, 280)">
+                <circle r="8" fill="#181b1f" stroke={currentScene >= 12 ? '#c28a28' : '#3f8f68'} strokeWidth={currentScene >= 12 ? '2.5' : '1.5'} />
+                <text x="12" y="4" fill="#e5e7eb" fontSize="10" fontWeight="bold">
+                  CAM-06 {currentScene >= 12 ? '(PREDICTED INTERCEPT)' : ''}
+                </text>
+              </g>
+
+              {/* 8. Moving Target T-104 & Trajectory Vector */}
+              {currentScene >= 5 && (
+                <>
+                  {/* Trajectory line from origin */}
+                  <path
+                    d={`M 140 210 Q 220 190 ${targetX} ${targetY}`}
+                    fill="none"
+                    stroke="#c93c3c"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+
+                  {/* Predicted forward intercept path */}
+                  {currentScene >= 12 && (
+                    <path
+                      d={`M ${targetX} ${targetY} Q 540 260 680 270`}
+                      fill="none"
+                      stroke="#477da8"
+                      strokeWidth="2"
+                      strokeDasharray="6 3"
+                    />
+                  )}
+
+                  {/* Target Crosshair Marker */}
+                  <g transform={`translate(${targetX}, ${targetY})`} className="transition-all duration-700 ease-out">
+                    <circle r="9" fill="none" stroke="#c93c3c" strokeWidth="2" />
+                    <line x1="-12" y1="0" x2="12" y2="0" stroke="#c93c3c" strokeWidth="1.5" />
+                    <line x1="0" y1="-12" x2="0" y2="12" stroke="#c93c3c" strokeWidth="1.5" />
+                    <rect x="12" y="-18" width="92" height="28" rx="2" fill="#14171a" stroke="#c93c3c" strokeWidth="1" />
+                    <text x="18" y="-4" fill="#e5e7eb" fontSize="9" fontWeight="bold">T-104 &bull; PERSON</text>
+                    <text x="18" y="7" fill="#3f8f68" fontSize="8">VEL: 1.8 m/s</text>
+                  </g>
+                </>
+              )}
+
+              {/* 9. Dynamic System Callout Badges */}
+              {/* Blind Zone Alert */}
+              {currentScene >= 7 && currentScene < 10 && (
+                <g transform="translate(140, 90)">
+                  <rect width="180" height="34" rx="4" fill="#14171a" stroke="#c93c3c" strokeWidth="1.5" />
+                  <text x="12" y="16" fill="#c93c3c" fontSize="10" fontWeight="bold">PERIMETER BLIND ZONE</text>
+                  <text x="12" y="28" fill="#8d949d" fontSize="9">32% Coverage Lost on CAM-03</text>
+                </g>
+              )}
+
+              {/* SHIELD Restoration Banner */}
+              {currentScene >= 10 && currentScene < 12 && (
+                <g transform="translate(360, 90)">
+                  <rect width="210" height="34" rx="4" fill="#14171a" stroke="#3f8f68" strokeWidth="1.5" />
+                  <text x="12" y="16" fill="#3f8f68" fontSize="10" fontWeight="bold">SHIELD: COVERAGE RESTORED</text>
+                  <text x="12" y="28" fill="#8d949d" fontSize="9">CAM-TOWER-01 Slewed +32°</text>
+                </g>
+              )}
+
+              {/* SWAN Handoff Banner */}
+              {currentScene >= 13 && currentScene < 16 && (
+                <g transform="translate(480, 90)">
+                  <rect width="220" height="34" rx="4" fill="#14171a" stroke="#477da8" strokeWidth="1.5" />
+                  <text x="12" y="16" fill="#477da8" fontSize="10" fontWeight="bold">SWAN: CORRIDOR HANDOFF</text>
+                  <text x="12" y="28" fill="#8d949d" fontSize="9">CAM-04 Confirms &bull; CAM-06 Next</text>
+                </g>
+              )}
+            </svg>
+          </div>
+
+          {/* Picture-in-Picture Tactical Feed Overlay */}
+          <div className="absolute bottom-16 right-4 z-20 w-64 md:w-72 bg-[#14171a]/95 border border-[#30353b] rounded overflow-hidden shadow-2xl backdrop-blur hidden sm:block">
+            <div className="p-1.5 bg-[#181b1f] border-b border-[#30353b] flex items-center justify-between text-[10px]">
+              <span className="font-bold text-[#e5e7eb] flex items-center gap-1">
+                <Video className="w-3 h-3 text-[#477da8]" />
+                <span>
+                  {currentScene <= 6 ? 'LIVE: CAM-03 (THERMAL)' : currentScene <= 10 ? 'FAULT: CAM-03' : 'HANDOFF: CAM-04 (OPTICAL)'}
+                </span>
+              </span>
+              <span className={`px-1 rounded text-[9px] font-bold ${
+                currentScene >= 7 && currentScene <= 9 ? 'bg-[#c93c3c] text-white' : 'bg-[#3f8f68]/20 text-[#3f8f68]'
+              }`}>
+                {currentScene >= 7 && currentScene <= 9 ? 'OFFLINE' : 'LIVE'}
+              </span>
+            </div>
+            <div className="h-36 relative">
+              {currentScene >= 7 && currentScene <= 9 ? (
+                <div className="h-full w-full bg-[#181b1f] flex flex-col items-center justify-center space-y-1 text-center p-3">
+                  <EyeOff className="w-6 h-6 text-[#c93c3c] animate-pulse" />
+                  <span className="text-[10px] font-bold text-[#c93c3c]">HEARTBEAT TIMEOUT &gt; 3.0s</span>
+                  <span className="text-[9px] text-[#8d949d]">SHIELD Slew in progress...</span>
+                </div>
+              ) : currentScene >= 10 ? (
+                <CameraFeed camera={cam4} showControls={false} />
+              ) : (
+                <CameraFeed camera={cam3} showControls={false} />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. BOTTOM SCENE TIMELINE SCRUBBER (01-19) */}
+      <footer className="h-16 bg-[#121417] border-t border-[#282c33] px-3 md:px-6 flex items-center justify-between shrink-0 z-40 text-xs">
+        {/* Step Buttons (01 - 19) */}
+        <div className="flex-1 flex items-center gap-1 overflow-x-auto py-1 mr-4">
+          {SCENES.map((s) => {
+            const isActive = currentScene === s.id;
             return (
               <button
-                key={idx}
+                key={s.id}
                 onClick={() => {
-                  setCurrentScene(stepNum);
+                  setCurrentScene(s.id);
                   setIsPlaying(false);
                 }}
-                className={`px-2 py-1 rounded whitespace-nowrap transition-colors flex items-center gap-1 ${
+                className={`px-2 py-1.5 rounded transition-all shrink-0 flex flex-col items-center ${
                   isActive
-                    ? 'bg-[#477da8] text-white font-bold'
-                    : 'text-[#8d949d] hover:bg-[#20242a] hover:text-[#e5e7eb]'
+                    ? 'bg-[#477da8] text-white font-bold scale-105 shadow-sm'
+                    : 'text-[#8d949d] hover:bg-[#181b1f] hover:text-[#e5e7eb]'
                 }`}
               >
-                <span>{stepNum.toString().padStart(2, '0')}</span>
+                <span className="text-[10px] leading-none">{s.id.toString().padStart(2, '0')}</span>
+                <span className="text-[8px] opacity-75 mt-0.5 uppercase tracking-tighter">{s.slug}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Cinematic Operational Theatre */}
-        <div className="flex-1 bg-[#14171a] border border-[#30353b] rounded flex flex-col overflow-hidden min-h-[520px]">
-          {/* Top Scene Sub-Header */}
-          <div className="h-10 bg-[#181b1f] border-b border-[#30353b] px-4 flex items-center justify-between text-xs text-[#8d949d]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#477da8]" />
-              <span className="font-bold text-[#e5e7eb]">SECTOR 17 SIMULATION STAGE:</span>
-              <span className="text-[#477da8]">{sceneTitles[currentScene - 1]}</span>
-            </div>
-            <div className="text-[10px]">
-              TACTICAL TIMECODE: <span className="text-[#e5e7eb]">16:48:{(12 + currentScene).toString().padStart(2, '0')} IST</span>
-            </div>
-          </div>
-
-          {/* Dynamic Scene Body */}
-          <div className="flex-1 p-6 flex flex-col justify-center items-center relative overflow-hidden">
-            {/* Subtle Grid & Topographic Lines */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#30353b15_1px,transparent_1px),linear-gradient(to_bottom,#30353b15_1px,transparent_1px)] bg-[size:2rem_2rem] pointer-events-none" />
-
-            {/* SCENE 01: ARRIVAL AT BOP-17 */}
-            {currentScene === 1 && (
-              <div className="text-center space-y-6 max-w-2xl relative z-10 animate-fadeIn">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#181b1f] border border-[#30353b] text-xs text-[#8d949d]">
-                  <Compass className="w-3.5 h-3.5 text-[#3f8f68]" />
-                  <span>32.7325° N, 74.8645° E &bull; ELEVATION 412M</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-xs text-[#8d949d] tracking-widest uppercase">NORTH SECTOR FRONTIER</div>
-                  <h1 className="text-3xl sm:text-5xl font-extrabold text-[#e5e7eb] tracking-tight">
-                    BORDER OUTPOST 17
-                  </h1>
-                </div>
-                <p className="text-sm text-[#8d949d] leading-relaxed">
-                  One border outpost. Multiple sensors. 2.8 kilometers of undulating terrain, scrub gullies, and virtual fence lines. One unified edge intelligence layer.
-                </p>
-                <div className="pt-4 flex justify-center gap-3 text-xs">
-                  <span className="px-3 py-1 rounded bg-[#181b1f] border border-[#30353b] text-[#8d949d]">Linear Fence: 2,800m</span>
-                  <span className="px-3 py-1 rounded bg-[#181b1f] border border-[#30353b] text-[#8d949d]">Watch Towers: 2</span>
-                  <span className="px-3 py-1 rounded bg-[#181b1f] border border-[#30353b] text-[#8d949d]">CCTV Nodes: 7</span>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 02: CAMERA NETWORK COMES ONLINE */}
-            {currentScene === 2 && (
-              <div className="w-full max-w-4xl space-y-6 relative z-10 animate-fadeIn">
-                <div className="text-center space-y-1">
-                  <div className="text-xs text-[#477da8]">TOPOLOGICAL REGISTRY</div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">PERIMETER SENSOR NODES ONLINE</h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  {[
-                    { id: 'CAM-03', type: 'FIXED IR / THERMAL', role: 'North Fence Alpha', status: 'ONLINE' },
-                    { id: 'CAM-04', type: 'PTZ OPTICAL DOME', role: 'Ridge Junction', status: 'ONLINE' },
-                    { id: 'CAM-06', type: 'FIXED CCTV', role: 'Gully Bravo Approach', status: 'ONLINE' },
-                    { id: 'CAM-07', type: 'THERMAL BARRIER', role: 'Sector Boundary East', status: 'ONLINE' },
-                    { id: 'CAM-11', type: 'OPTICAL PANORAMA', role: 'Buffer Zone West', status: 'ONLINE' },
-                    { id: 'CAM-TOWER-01', type: 'HIGH-TILT PTZ', role: 'Elevated Mast 30m', status: 'ONLINE' },
-                    { id: 'CAM-ROAD-05', type: 'ANPR / ROADWAY', role: 'Patrol Track Access', status: 'ONLINE' },
-                    { id: 'EDGE-BOP-17', type: 'RUGGEDIZED NODE', role: 'Inference Gateway', status: 'PRIMARY' }
-                  ].map((node, i) => (
-                    <div key={i} className="p-3 rounded bg-[#181b1f] border border-[#30353b] space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#e5e7eb]">{node.id}</span>
-                        <span className="w-2 h-2 rounded-full bg-[#3f8f68] animate-ping" />
-                      </div>
-                      <div className="text-[10px] text-[#477da8]">{node.type}</div>
-                      <div className="text-[10px] text-[#8d949d] truncate">{node.role}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="text-center text-xs text-[#8d949d]">
-                  Communication: <strong className="text-[#e5e7eb]">RTSP &bull; ONVIF Profile S/G/T &bull; 100ms Edge Heartbeat</strong>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 03: RUGGEDIZED EDGE NODE */}
-            {currentScene === 3 && (
-              <div className="w-full max-w-3xl space-y-6 relative z-10 animate-fadeIn">
-                <div className="text-center space-y-1">
-                  <div className="text-xs text-[#3f8f68]">LOCAL EDGE COMPUTATION</div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">INSIDE THE BOP-17 EDGE APPLIANCE</h2>
-                  <p className="text-xs text-[#8d949d]">Zero reliance on internet or central cloud connectivity.</p>
-                </div>
-
-                <div className="p-5 rounded bg-[#181b1f] border border-[#30353b] space-y-4">
-                  <div className="grid grid-cols-5 gap-2 text-center text-xs">
-                    <div className="p-2 rounded bg-[#20242a] border border-[#30353b]">
-                      <div className="text-[10px] text-[#8d949d]">INPUT</div>
-                      <div className="font-bold text-[#e5e7eb] mt-1">RTSP Video</div>
-                      <div className="text-[10px] text-[#3f8f68]">24 FPS &times; 7</div>
-                    </div>
-                    <div className="p-2 rounded bg-[#20242a] border border-[#30353b]">
-                      <div className="text-[10px] text-[#8d949d]">INFERENCE</div>
-                      <div className="font-bold text-[#e5e7eb] mt-1">YOLOv8 RT</div>
-                      <div className="text-[10px] text-[#477da8]">14ms TensorRT</div>
-                    </div>
-                    <div className="p-2 rounded bg-[#20242a] border border-[#30353b]">
-                      <div className="text-[10px] text-[#8d949d]">TRACKING</div>
-                      <div className="font-bold text-[#e5e7eb] mt-1">ByteTrack</div>
-                      <div className="text-[10px] text-[#8d949d]">Re-ID Embed</div>
-                    </div>
-                    <div className="p-2 rounded bg-[#20242a] border border-[#477da8]/40">
-                      <div className="text-[10px] text-[#477da8]">SWAN</div>
-                      <div className="font-bold text-[#e5e7eb] mt-1">Handoff Bus</div>
-                      <div className="text-[10px] text-[#477da8]">Multi-Camera</div>
-                    </div>
-                    <div className="p-2 rounded bg-[#20242a] border border-[#3f8f68]/40">
-                      <div className="text-[10px] text-[#3f8f68]">SHIELD</div>
-                      <div className="font-bold text-[#e5e7eb] mt-1">Healing Loop</div>
-                      <div className="text-[10px] text-[#3f8f68]">PTZ Recovery</div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded bg-[#20242a] border border-[#30353b] text-xs text-[#8d949d] leading-relaxed">
-                    The intelligence happens directly at the outpost. Raw video never leaves the border fence without verified operator escalation.
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 04: NORMAL SURVEILLANCE GRID */}
-            {currentScene === 4 && (
-              <div className="w-full max-w-4xl space-y-4 relative z-10 animate-fadeIn">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#8d949d]">NORMAL PERIMETER SURVEILLANCE</span>
-                  <span className="text-[#3f8f68] font-bold">&bull; ALL SENSORS NOMINAL</span>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="h-36"><CameraFeed camera={cam3} showControls={false} /></div>
-                  <div className="h-36"><CameraFeed camera={cam4} showControls={false} /></div>
-                  <div className="h-36"><CameraFeed camera={cam6} showControls={false} /></div>
-                  <div className="h-36"><CameraFeed camera={camTower} showControls={false} /></div>
-                </div>
-
-                <div className="text-center text-xs text-[#8d949d]">
-                  Optical and thermal cross-monitoring active. Zero perimeter boundary violations.
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 05: FIRST THREAT DETECTION (T-104) */}
-            {currentScene === 5 && (
-              <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10 animate-fadeIn">
-                <div className="md:col-span-6 space-y-4">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#c93c3c]/20 border border-[#c93c3c]/40 text-[#c93c3c] text-xs font-bold">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>PERIMETER BREACH DETECTED</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">TARGET T-104 AT NORTH FENCE</h2>
-                  <div className="space-y-2 text-xs text-[#8d949d]">
-                    <div className="flex justify-between border-b border-[#30353b] pb-1">
-                      <span>CLASSIFICATION:</span>
-                      <strong className="text-[#e5e7eb]">Person (Infiltrator)</strong>
-                    </div>
-                    <div className="flex justify-between border-b border-[#30353b] pb-1">
-                      <span>CONFIDENCE:</span>
-                      <strong className="text-[#3f8f68]">94.2%</strong>
-                    </div>
-                    <div className="flex justify-between border-b border-[#30353b] pb-1">
-                      <span>VELOCITY:</span>
-                      <strong className="text-[#e5e7eb]">1.8 m/s (Heading 042°)</strong>
-                    </div>
-                    <div className="flex justify-between border-b border-[#30353b] pb-1">
-                      <span>SENSOR ACQUISITION:</span>
-                      <strong className="text-[#477da8]">CAM-03 (Thermal Band)</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:col-span-6 h-64 border-2 border-[#c93c3c] rounded overflow-hidden">
-                  <CameraFeed camera={cam3} showControls={false} />
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 06: SENSOR SABOTAGE (CAM-03 LOSS) */}
-            {currentScene === 6 && (
-              <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10 animate-fadeIn">
-                <div className="md:col-span-6 space-y-4">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#c93c3c] text-white text-xs font-bold">
-                    <EyeOff className="w-3.5 h-3.5" />
-                    <span>CRITICAL: HEARTBEAT TIMEOUT</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-[#c93c3c]">CAM-03 SIGNAL UNAVAILABLE</h2>
-                  <p className="text-xs text-[#8d949d] leading-relaxed">
-                    Physical tamper or spray detected on optical lens. The target was moving through Gully Bravo when the sensor dropped.
-                  </p>
-                  <div className="p-3 rounded bg-[#c93c3c]/10 border border-[#c93c3c]/30 text-xs text-[#c93c3c] font-bold">
-                    THE SYSTEM RISKS LOSING VISUAL CONTACT WITH T-104.
-                  </div>
-                </div>
-
-                <div className="md:col-span-6 h-64 border-2 border-[#c93c3c] rounded bg-[#181b1f] flex flex-col items-center justify-center space-y-2">
-                  <EyeOff className="w-10 h-10 text-[#c93c3c] animate-pulse" />
-                  <span className="text-xs font-bold text-[#c93c3c]">CAM-03 OFFLINE &bull; RESIDUAL BLIND ZONE 32%</span>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 07: SHIELD FAULT CLASSIFICATION */}
-            {currentScene === 7 && (
-              <div className="w-full max-w-3xl space-y-6 relative z-10 animate-fadeIn">
-                <div className="text-center space-y-1">
-                  <div className="text-xs text-[#3f8f68]">AUTONOMOUS FAULT ENGINE</div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">SHIELD IDENTIFIES & CLASSIFIES THE GAP</h2>
-                </div>
-
-                <div className="grid grid-cols-4 gap-3 text-center text-xs">
-                  <div className="p-3 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="text-[10px] text-[#8d949d]">STEP 1</div>
-                    <div className="font-bold text-[#e5e7eb] mt-1">HEARTBEAT LOST</div>
-                    <div className="text-[10px] text-[#c93c3c] mt-1">&gt; 3.0s Timeout</div>
-                  </div>
-                  <div className="p-3 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="text-[10px] text-[#8d949d]">STEP 2</div>
-                    <div className="font-bold text-[#e5e7eb] mt-1">FAULT CLASSIFIED</div>
-                    <div className="text-[10px] text-[#c28a28] mt-1">Tamper / Block</div>
-                  </div>
-                  <div className="p-3 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="text-[10px] text-[#8d949d]">STEP 3</div>
-                    <div className="font-bold text-[#e5e7eb] mt-1">BLIND ZONE EST.</div>
-                    <div className="text-[10px] text-[#c93c3c] mt-1">-32% Gap</div>
-                  </div>
-                  <div className="p-3 rounded bg-[#181b1f] border border-[#477da8]">
-                    <div className="text-[10px] text-[#477da8]">STEP 4</div>
-                    <div className="font-bold text-[#477da8] mt-1">SEARCH BACKUP</div>
-                    <div className="text-[10px] text-[#477da8] mt-1">Evaluating Nodes</div>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded bg-[#181b1f] border border-[#30353b] text-xs text-[#8d949d] text-center">
-                  SHIELD does not freeze or report a passive error. It actively measures the geometric loss and calculates alternate camera overlap.
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 08: AUTONOMOUS PTZ HEALING */}
-            {currentScene === 8 && (
-              <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10 animate-fadeIn">
-                <div className="md:col-span-6 space-y-4">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#3f8f68]/20 border border-[#3f8f68]/40 text-[#3f8f68] text-xs font-bold">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>COVERAGE RESTORED</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">CAM-TOWER-01 SLEWED TO FENCE</h2>
-                  <p className="text-xs text-[#8d949d] leading-relaxed">
-                    Neighboring PTZ dome actuated +32° azimuth in 1.4 seconds. Residual blind zone reduced from 32% down to 11.6%.
-                  </p>
-                  <div className="p-3 rounded bg-[#3f8f68]/10 border border-[#3f8f68]/30 text-xs text-[#3f8f68]">
-                    VISUAL CONTINUITY RESTORED ACROSS PERIMETER GAP.
-                  </div>
-                </div>
-
-                <div className="md:col-span-6 h-64 border-2 border-[#3f8f68] rounded overflow-hidden">
-                  <CameraFeed camera={camTower} showControls={false} />
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 09: SWAN DISTRIBUTED FUSION */}
-            {currentScene === 9 && (
-              <div className="w-full max-w-3xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#181b1f] border border-[#30353b] text-xs text-[#477da8]">
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>SWAN DISTRIBUTED CONSENSUS</span>
-                </div>
-                <h2 className="text-3xl font-extrabold text-[#e5e7eb]">
-                  "ONE CAMERA SHOULD NEVER BE THE END OF A TRACK."
-                </h2>
-                <p className="text-sm text-[#8d949d] max-w-xl mx-auto leading-relaxed">
-                  Traditional surveillance isolates feeds into silos. SWAN creates an edge-coordinated neural fabric across neighboring camera sensors.
-                </p>
-              </div>
-            )}
-
-            {/* SCENE 10: NEIGHBOR CAMERA PRIORITIZATION */}
-            {currentScene === 10 && (
-              <div className="w-full max-w-3xl space-y-6 relative z-10 animate-fadeIn">
-                <div className="text-center space-y-1">
-                  <div className="text-xs text-[#477da8]">INTELLIGENT FOCUS</div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">PREDICTIVE CORRIDOR TASKING</h2>
-                </div>
-
-                <div className="grid grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded bg-[#c93c3c]/10 border border-[#c93c3c]/40 text-center">
-                    <div className="font-bold text-[#e5e7eb]">CAM-03</div>
-                    <div className="text-[10px] text-[#c93c3c] mt-1">FAILED (LAST SEEN)</div>
-                  </div>
-                  <div className="p-3 rounded bg-[#3f8f68]/20 border-2 border-[#3f8f68] text-center">
-                    <div className="font-bold text-[#3f8f68]">CAM-04</div>
-                    <div className="text-[10px] text-[#3f8f68] mt-1">HIGH PRIORITY (SLEW)</div>
-                  </div>
-                  <div className="p-3 rounded bg-[#477da8]/20 border border-[#477da8]/50 text-center">
-                    <div className="font-bold text-[#e5e7eb]">CAM-06</div>
-                    <div className="text-[10px] text-[#477da8] mt-1">WATCH STANDBY</div>
-                  </div>
-                  <div className="p-3 rounded bg-[#20242a] border border-[#30353b] text-center opacity-60">
-                    <div className="font-bold text-[#8d949d]">CAM-07</div>
-                    <div className="text-[10px] text-[#8d949d] mt-1">NORMAL (OFF-CORRIDOR)</div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-[#8d949d] text-center leading-relaxed">
-                  SWAN does not overwhelm operators by alerting on all 56 sector cameras. Only nodes intersecting the target's trajectory vector are elevated.
-                </p>
-              </div>
-            )}
-
-            {/* SCENE 11: SEAMLESS VECTOR HANDOFF */}
-            {currentScene === 11 && (
-              <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10 animate-fadeIn">
-                <div className="md:col-span-6 space-y-4">
-                  <div className="text-xs text-[#477da8] font-bold">CROSS-CAMERA CONTINUITY</div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">RE-ACQUIRED AS T-104</h2>
-                  <p className="text-xs text-[#8d949d] leading-relaxed">
-                    CAM-04 acquires the target within 1.2 seconds of watch request dispatch. Cosine feature embedding matches T-104 with 94.2% similarity.
-                  </p>
-                  <div className="p-3 rounded bg-[#20242a] border border-[#30353b] text-xs text-[#3f8f68]">
-                    SAME PERSISTENT TRACK IDENTIFIER PRESERVED.
-                  </div>
-                </div>
-
-                <div className="md:col-span-6 h-64 border-2 border-[#477da8] rounded overflow-hidden">
-                  <CameraFeed camera={cam4} showControls={false} />
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 12: MULTI-SENSOR CONFIRMATION */}
-            {currentScene === 12 && (
-              <div className="w-full max-w-3xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="text-xs text-[#3f8f68]">VERIFICATION MATRIX</div>
-                <h2 className="text-2xl font-bold text-[#e5e7eb]">CONFIDENCE ELEVATES FROM 71% TO 92%</h2>
-
-                <div className="grid grid-cols-3 gap-4 text-xs font-mono">
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="text-[10px] text-[#8d949d]">INITIAL DETECT (CAM-03)</div>
-                    <div className="text-2xl font-bold text-[#c28a28] mt-1">71%</div>
-                    <div className="text-[10px] text-[#8d949d] mt-1">Single Thermal Signal</div>
-                  </div>
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="text-[10px] text-[#8d949d]">HANDOFF CONFIRM (CAM-04)</div>
-                    <div className="text-2xl font-bold text-[#3f8f68] mt-1">92%</div>
-                    <div className="text-[10px] text-[#3f8f68] mt-1">Dual Sensor Corroboration</div>
-                  </div>
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="text-[10px] text-[#8d949d]">DOWNSTREAM INTERCEPT</div>
-                    <div className="text-2xl font-bold text-[#477da8] mt-1">CAM-06</div>
-                    <div className="text-[10px] text-[#8d949d] mt-1">Lead Time: 6.2s</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 13: MULTI-SIGNAL THREAT FUSION */}
-            {currentScene === 13 && (
-              <div className="w-full max-w-3xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="text-xs text-[#c93c3c]">OBJECTIVE RISK FORMULATION</div>
-                <h2 className="text-2xl font-bold text-[#e5e7eb]">RISK FUSION ENGINE</h2>
-
-                <div className="p-4 rounded bg-[#181b1f] border border-[#30353b] text-xs flex flex-wrap justify-center items-center gap-2">
-                  <span className="px-2 py-1 bg-[#20242a] border border-[#30353b] rounded">PERSON CLASSIFICATION</span>
-                  <span>+</span>
-                  <span className="px-2 py-1 bg-[#20242a] border border-[#30353b] rounded">RESTRICTED BUFFER ZONE</span>
-                  <span>+</span>
-                  <span className="px-2 py-1 bg-[#20242a] border border-[#30353b] rounded">INWARD VELOCITY</span>
-                  <span>+</span>
-                  <span className="px-2 py-1 bg-[#20242a] border border-[#30353b] rounded">MULTI-CAM VERIFICATION</span>
-                  <span>&rarr;</span>
-                  <span className="px-3 py-1 bg-[#c93c3c]/20 border border-[#c93c3c] text-[#c93c3c] font-bold rounded">
-                    SCORE: 92 / 100 (CRITICAL)
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 14: CONSOLIDATED INCIDENT CREATED */}
-            {currentScene === 14 && (
-              <div className="w-full max-w-2xl p-6 rounded bg-[#181b1f] border border-[#c93c3c]/50 space-y-4 relative z-10 animate-fadeIn">
-                <div className="flex items-center justify-between border-b border-[#30353b] pb-3">
-                  <div>
-                    <span className="text-xs text-[#8d949d]">UNIFIED INCIDENT DOSSIER</span>
-                    <h3 className="text-xl font-bold text-[#e5e7eb]">INC-2026-0142</h3>
-                  </div>
-                  <span className="px-2 py-1 rounded bg-[#c93c3c] text-white text-xs font-bold">
-                    CRITICAL BREACH
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 text-xs">
-                  <div>
-                    <div className="text-[10px] text-[#8d949d]">TARGET</div>
-                    <div className="font-bold text-[#e5e7eb]">T-104</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-[#8d949d]">SENSOR CHAIN</div>
-                    <div className="font-bold text-[#477da8]">CAM-03 &rarr; CAM-04 &rarr; CAM-06</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-[#8d949d]">STATUS</div>
-                    <div className="font-bold text-[#3f8f68]">CONFIRMED ESCALATION</div>
-                  </div>
-                </div>
-
-                <div className="text-xs text-[#8d949d]">
-                  Multiple camera observations collapse into ONE actionable mission incident. Zero alert fatigue.
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 15: SHA-256 CHAIN OF CUSTODY */}
-            {currentScene === 15 && (
-              <div className="w-full max-w-2xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="text-xs text-[#477da8]">FORENSIC CRYPTOGRAPHY</div>
-                <h2 className="text-2xl font-bold text-[#e5e7eb]">SHA-256 EVIDENCE REPOSITORY</h2>
-                <div className="p-4 rounded bg-[#181b1f] border border-[#30353b] text-left text-xs space-y-2">
-                  <div className="flex items-center justify-between text-[#3f8f68]">
-                    <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> CRYPTOGRAPHIC LOCK</span>
-                    <span>VERIFIED</span>
-                  </div>
-                  <div className="text-[#8d949d] break-all font-mono text-[11px]">
-                    SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-                  </div>
-                  <div className="text-[11px] text-[#8d949d] pt-2 border-t border-[#30353b]">
-                    Contains: Still frame snapshot, H.264 12-second clip, GPS waypoints, telemetry logs, and operator timestamps. Court admissible.
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 16: SECURE SECTOR RELAY */}
-            {currentScene === 16 && (
-              <div className="w-full max-w-3xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="text-xs text-[#477da8]">HIGH-ASSURANCE RELAY</div>
-                <h2 className="text-2xl font-bold text-[#e5e7eb]">FROM THE BORDER FENCE TO COMMAND</h2>
-
-                <div className="flex items-center justify-center gap-4 text-xs">
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="font-bold text-[#e5e7eb]">BOP-17 EDGE</div>
-                    <div className="text-[10px] text-[#3f8f68]">Processed Locally</div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-[#477da8]" />
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#477da8]">
-                    <div className="font-bold text-[#e5e7eb]">SECURE MESH / FIBER</div>
-                    <div className="text-[10px] text-[#477da8]">TLS 1.3 Encrypted</div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-[#477da8]" />
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="font-bold text-[#e5e7eb]">HQ COMMAND CONSOLE</div>
-                    <div className="text-[10px] text-[#e5e7eb]">Real-Time GIS</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 17: HUMAN OPERATOR DOCTRINE */}
-            {currentScene === 17 && (
-              <div className="w-full max-w-2xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#181b1f] border border-[#30353b] text-xs text-[#3f8f68]">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>OPERATIONAL ETHICS & DOCTRINE</span>
-                </div>
-                <h2 className="text-3xl font-extrabold text-[#e5e7eb]">
-                  DETECTION IS AUTOMATED.<br />DECISION REMAINS HUMAN.
-                </h2>
-                <p className="text-sm text-[#8d949d] leading-relaxed">
-                  DRISHTI detects. SWAN correlates across sensors. SHIELD preserves perimeter coverage. But only the human operator verifies the evidence, escalates the alert, and authorizes tactical response.
-                </p>
-              </div>
-            )}
-
-            {/* SCENE 18: MULTI-BOP SCALABLE NETWORK */}
-            {currentScene === 18 && (
-              <div className="w-full max-w-3xl space-y-6 text-center relative z-10 animate-fadeIn">
-                <div className="text-xs text-[#477da8]">SECTOR ARCHITECTURE</div>
-                <h2 className="text-2xl font-bold text-[#e5e7eb]">MULTI-BOP FEDERATED SURVEILLANCE</h2>
-
-                <div className="grid grid-cols-3 gap-4 text-xs">
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="font-bold text-[#e5e7eb]">BOP-17 (ACTIVE)</div>
-                    <div className="text-[10px] text-[#3f8f68]">7 Cameras &bull; Online</div>
-                  </div>
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="font-bold text-[#e5e7eb]">BOP-18</div>
-                    <div className="text-[10px] text-[#8d949d]">12 Cameras &bull; Standby</div>
-                  </div>
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b]">
-                    <div className="font-bold text-[#e5e7eb]">BOP-19</div>
-                    <div className="text-[10px] text-[#8d949d]">9 Cameras &bull; Standby</div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-[#8d949d]">
-                  Scales across thousands of kilometers of border outposts without architectural bottlenecks.
-                </p>
-              </div>
-            )}
-
-            {/* SCENE 19: DEPLOYMENT ARCHITECTURE */}
-            {currentScene === 19 && (
-              <div className="w-full max-w-4xl space-y-6 relative z-10 animate-fadeIn">
-                <div className="text-center space-y-1">
-                  <div className="text-xs text-[#3f8f68]">DEPLOYMENT MATRIX</div>
-                  <h2 className="text-2xl font-bold text-[#e5e7eb]">READY FROM PROTOTYPE TO FRONTIER</h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b] space-y-2">
-                    <div className="text-[10px] text-[#8d949d]">TIER 1 / EVALUATION</div>
-                    <div className="font-bold text-[#e5e7eb]">Local Simulation</div>
-                    <p className="text-[11px] text-[#8d949d]">
-                      Runs on a GPU workstation using internal simulated video buses.
-                    </p>
-                    <div className="text-[10px] text-[#3f8f68]">&bull; Ready immediately via npm run dev</div>
-                  </div>
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#477da8] space-y-2">
-                    <div className="text-[10px] text-[#477da8]">TIER 2 / FIELD PILOT</div>
-                    <div className="font-bold text-[#e5e7eb]">Ruggedized BOP Edge</div>
-                    <p className="text-[11px] text-[#8d949d]">
-                      Air-gapped industrial server interfacing with physical ONVIF cameras and PTZ motors.
-                    </p>
-                    <div className="text-[10px] text-[#477da8]">&bull; Zero Internet required</div>
-                  </div>
-                  <div className="p-4 rounded bg-[#181b1f] border border-[#30353b] space-y-2">
-                    <div className="text-[10px] text-[#8d949d]">TIER 3 / ENTERPRISE</div>
-                    <div className="font-bold text-[#e5e7eb]">Sector Command Cluster</div>
-                    <p className="text-[11px] text-[#8d949d]">
-                      Federated high-availability Kubernetes cluster for multi-outpost surveillance operations.
-                    </p>
-                    <div className="text-[10px] text-[#8d949d]">&bull; PostGIS &bull; TimescaleDB &bull; Redis</div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-center">
-                  <Link
-                    to="/login"
-                    className="px-6 py-3 rounded bg-[#477da8] hover:bg-[#477da8]/90 text-white font-bold transition-colors flex items-center gap-2 text-xs"
-                  >
-                    <span>INITIALIZE DRISHTI CONSOLE SESSION</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Bottom Simulation Controller */}
-          <div className="h-14 bg-[#181b1f] border-t border-[#30353b] px-4 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setCurrentScene(prev => (prev > 1 ? prev - 1 : 19));
-                  setIsPlaying(false);
-                }}
-                className="px-3 py-1.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] transition-colors"
-              >
-                &larr; PREVIOUS
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentScene(prev => (prev < 19 ? prev + 1 : 1));
-                  setIsPlaying(false);
-                }}
-                className="px-3 py-1.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] transition-colors"
-              >
-                NEXT &rarr;
-              </button>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-3 text-[#8d949d] text-[11px]">
-              <span>ENTITY: <strong className="text-[#e5e7eb]">BOP-17 / T-104 / CAM-03</strong></span>
-              <span>&bull;</span>
-              <span>ENGINE: <strong className="text-[#3f8f68]">SWAN + SHIELD</strong></span>
-            </div>
-
-            <Link
-              to="/app/command"
-              className="px-4 py-1.5 rounded bg-[#20242a] hover:bg-[#30353b] border border-[#30353b] text-[#e5e7eb] font-semibold transition-colors flex items-center gap-1.5"
-            >
-              <span>LIVE DEMO</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#477da8]" />
-            </Link>
-          </div>
-        </div>
-      </main>
-
-      {/* Tactical Footer */}
-      <footer className="border-t border-[#30353b] bg-[#14171a] px-6 py-4 text-[11px] text-[#8d949d] flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div>
-          DRISHTI &bull; Intelligent Border Video Analytics Platform &copy; 2026. Official BSF / Ministry of Home Affairs Protocol.
-        </div>
-        <div className="flex items-center gap-4">
-          <Link to="/app/command" className="hover:text-[#e5e7eb]">Command Map</Link>
-          <Link to="/app/swan/overview" className="hover:text-[#e5e7eb]">SWAN Network</Link>
-          <Link to="/app/shield/overview" className="hover:text-[#e5e7eb]">SHIELD Healing</Link>
-          <Link to="/login" className="hover:text-[#e5e7eb]">Terminal Login</Link>
+        {/* Prev / Next Controls */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => {
+              setCurrentScene(prev => (prev > 1 ? prev - 1 : 19));
+              setIsPlaying(false);
+            }}
+            className="p-2 rounded bg-[#181b1f] border border-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => {
+              setCurrentScene(prev => (prev < 19 ? prev + 1 : 1));
+              setIsPlaying(false);
+            }}
+            className="p-2 rounded bg-[#181b1f] border border-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </footer>
     </div>
   );
 };
+
 export default DrishtiPublicLanding;
