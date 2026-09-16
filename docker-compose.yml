@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # DRISHTI Frontend Command Console
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+      - VITE_WS_URL=ws://localhost:8000/ws
+    depends_on:
+      - backend
+
+  # DRISHTI C4I FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://drishti:drishti_secret@postgres:5432/drishti_c4i
+      - REDIS_URL=redis://redis:6379/0
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+    depends_on:
+      - postgres
+      - redis
+      - mqtt
+
+  # PostgreSQL with PostGIS Spatial Extensions
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: drishti_c4i
+      POSTGRES_USER: drishti
+      POSTGRES_PASSWORD: drishti_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis for In-Memory Sensor State & Fast Pub/Sub
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Mosquitto MQTT Broker for Edge CCTV & YOLO Telemetry
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+
+  # MinIO S3-Compatible Object Store for Forensic Video Evidence
+  minio:
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: drishti_admin
+      MINIO_ROOT_PASSWORD: drishti_secure_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

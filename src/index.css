@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #111315;
+  --surface: #181b1f;
+  --surface-2: #20242a;
+  --border: #30353b;
+  --text: #e5e7eb;
+  --text-muted: #8d949d;
+  --critical: #c93c3c;
+  --warning: #c28a28;
+  --success: #3f8f68;
+  --info: #477da8;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Tactical Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111315;
+}
+::-webkit-scrollbar-thumb {
+  background: #24282e;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #373e48;
+}
+
+/* Operational Map Styling for Leaflet */
+.leaflet-container {
+  background-color: #0f1114 !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* Dark tactical map tiles inversion filter for Carto / OSM tiles */
+.tactical-map-tiles {
+  filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+/* Map Popups and tooltips styling */
+.leaflet-popup-content-wrapper {
+  background-color: #181b1f !important;
+  color: #e5e7eb !important;
+  border: 1px solid #30353b !important;
+  border-radius: 4px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+.leaflet-popup-tip {
+  background-color: #181b1f !important;
+  border: 1px solid #30353b !important;
+}
+
+/* Leaflet Zoom control styling */
+.leaflet-bar {
+  border: 1px solid #30353b !important;
+  border-radius: 4px !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  background-color: #181b1f !important;
+  color: #e5e7eb !important;
+  border-bottom: 1px solid #30353b !important;
+}
+.leaflet-bar a:hover {
+  background-color: #20242a !important;
+  color: #ffffff !important;
+}
+
+/* OSD Camera Scanlines */
+.cctv-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 3px;
+  pointer-events: none;
+}
+
+/* Tactical Crosshair watermark */
+.tactical-crosshair {
+  position: relative;
+}
+.tactical-crosshair::before,
+.tactical-crosshair::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+.tactical-crosshair::before {
+  top: 50%;
+  left: calc(50% - 15px);
+  width: 30px;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.tactical-crosshair::after {
+  left: 50%;
+  top: calc(50% - 15px);
+  width: 1px;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Operational pulse ring for critical alert */
+@keyframes tactical-pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+}
+
+.pulse-critical {
+  animation: tactical-pulse 2s infinite ease-in-out;
+}
