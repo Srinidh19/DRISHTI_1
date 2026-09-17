@@ -38,6 +38,34 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Preload photographic CCTV background asset
+  useEffect(() => {
+    const bgSrc =
+      camera.id === 'CAM-03'
+        ? '/media/cctv/cam-03.jpg'
+        : camera.id === 'CAM-04'
+        ? '/media/cctv/cam-04.jpg'
+        : camera.id === 'CAM-06'
+        ? '/media/cctv/cam-06.jpg'
+        : camera.id === 'CAM-07'
+        ? '/media/cctv/cam-07.jpg'
+        : camera.id === 'CAM-TOWER-01'
+        ? '/media/cctv/cam-tower-01.jpg'
+        : camera.id === 'CAM-ROAD-05'
+        ? '/media/cctv/cam-road-05.jpg'
+        : camera.id === 'CAM-01'
+        ? '/media/cctv/cam-07.jpg'
+        : '/media/cctv/cam-04.jpg';
+
+    const img = new Image();
+    img.src = bgSrc;
+    img.onload = () => {
+      bgImageRef.current = img;
+    };
+  }, [camera.id]);
+
   // Draw procedural CCTV video frame simulation on HTML5 canvas
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -58,14 +86,14 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({
 
       if (isFailed) {
         // CCTV static noise with clear operational fault messaging
-        ctx.fillStyle = '#101214';
+        ctx.fillStyle = '#0a0c0e';
         ctx.fillRect(0, 0, width, height);
 
         // Heavy video static grain
         const imgData = ctx.getImageData(0, 0, width, height);
         const data = imgData.data;
         for (let i = 0; i < data.length; i += 4) {
-          const noise = (Math.random() * 38) | 0;
+          const noise = (Math.random() * 45) | 0;
           data[i] = noise;
           data[i + 1] = noise;
           data[i + 2] = noise;
@@ -74,7 +102,7 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({
         ctx.putImageData(imgData, 0, 0);
 
         // Center warning block
-        ctx.fillStyle = 'rgba(20, 10, 10, 0.85)';
+        ctx.fillStyle = 'rgba(18, 20, 24, 0.9)';
         ctx.fillRect(15, height / 2 - 28, width - 30, 56);
         ctx.strokeStyle = '#c93c3c';
         ctx.lineWidth = 1;
@@ -82,58 +110,49 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({
 
         ctx.fillStyle = '#c93c3c';
         ctx.font = 'bold 12px "IBM Plex Mono", monospace';
-        const headline = camera.health === 'OFFLINE' ? 'STREAM UNAVAILABLE' : 'SHIELD FAULT DETECTED';
+        const headline = `${camera.id}: CAMERA OFFLINE`;
         ctx.fillText(headline, 25, height / 2 - 8);
 
         ctx.fillStyle = '#8d949d';
         ctx.font = '10px "IBM Plex Mono", monospace';
-        const subMsg = fault ? `CONDITION: ${fault.condition}` : 'NETWORK HEARTBEAT TIMEOUT';
+        const subMsg = fault ? `SHIELD FAULT: ${fault.condition}` : 'SHIELD FAULT: STREAM INTERRUPTION';
         ctx.fillText(subMsg, 25, height / 2 + 12);
         return;
       }
 
-      // Background terrain styling based on stream type (thermal vs optical)
-      if (camera.streamType === 'thermal') {
-        // Thermal White-Hot / Dark Charcoal
+      // Draw real CCTV background asset if loaded, otherwise fallback gradient
+      const bgImg = bgImageRef.current;
+      if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
+        ctx.drawImage(bgImg, 0, 0, width, height);
+      } else if (camera.streamType === 'thermal') {
         const grad = ctx.createLinearGradient(0, 0, 0, height);
         grad.addColorStop(0, '#1a1e22');
         grad.addColorStop(0.5, '#20262c');
         grad.addColorStop(1, '#15181c');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
-
-        // Border obstacle fence line
-        ctx.strokeStyle = '#323943';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(0, height * 0.48);
-        ctx.lineTo(width, height * 0.48);
-        ctx.stroke();
-
-        // Fence posts
-        for (let x = 15; x < width; x += 35) {
-          ctx.beginPath();
-          ctx.moveTo(x, height * 0.42);
-          ctx.lineTo(x, height * 0.54);
-          ctx.stroke();
-        }
       } else {
-        // Optical Day/Night
         const grad = ctx.createLinearGradient(0, 0, 0, height);
         grad.addColorStop(0, '#171c22');
         grad.addColorStop(0.6, '#1f2730');
         grad.addColorStop(1, '#13181e');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
+      }
 
-        // Patrol road corridor
-        ctx.fillStyle = '#1b2229';
-        ctx.beginPath();
-        ctx.moveTo(width * 0.32, height);
-        ctx.lineTo(width * 0.46, height * 0.5);
-        ctx.lineTo(width * 0.54, height * 0.5);
-        ctx.lineTo(width * 0.72, height);
-        ctx.fill();
+      // Standby state overlay if camera is in standby
+      if (camera.health === 'STANDBY' as any) {
+        ctx.fillStyle = 'rgba(18, 20, 24, 0.75)';
+        ctx.fillRect(10, 10, 180, 26);
+        ctx.fillStyle = '#477da8';
+        ctx.font = 'bold 10px "IBM Plex Mono", monospace';
+        ctx.fillText('STANDBY OVERWATCH // SLEW READY', 16, 26);
+      }
+
+      // Interlaced scan lines
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      for (let y = 0; y < height; y += 3) {
+        ctx.fillRect(0, y, width, 1);
       }
 
       // Subtle CCTV Grain

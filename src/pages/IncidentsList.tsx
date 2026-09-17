@@ -65,10 +65,10 @@ export const IncidentsList: React.FC = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-surface-2 p-1 rounded border border-border text-2xs">
+        <div className="flex items-center gap-1 bg-surface-2 p-1 rounded border border-border text-2xs overflow-x-auto max-w-full">
           <Link
             to="/app/incidents/active"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-2.5 sm:px-3 py-1 rounded transition-colors whitespace-nowrap ${
               activeTab === 'active'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -78,7 +78,7 @@ export const IncidentsList: React.FC = () => {
           </Link>
           <Link
             to="/app/incidents/assigned"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-2.5 sm:px-3 py-1 rounded transition-colors whitespace-nowrap ${
               activeTab === 'assigned'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -88,7 +88,7 @@ export const IncidentsList: React.FC = () => {
           </Link>
           <Link
             to="/app/incidents/resolved"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-2.5 sm:px-3 py-1 rounded transition-colors whitespace-nowrap ${
               activeTab === 'resolved'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -101,7 +101,7 @@ export const IncidentsList: React.FC = () => {
 
       {/* Filter & Search Bar */}
       <div className="p-2.5 bg-surface-2 border-b border-border flex flex-wrap items-center justify-between gap-2 select-none">
-        <div className="flex items-center gap-2 flex-1 max-w-md">
+        <div className="flex items-center gap-2 flex-1 max-w-md min-w-[200px]">
           <div className="relative w-full">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-text-muted" />
             <input
@@ -114,8 +114,8 @@ export const IncidentsList: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-2xs">
-          <span className="text-text-dim uppercase">Severity:</span>
+        <div className="flex items-center gap-1.5 text-2xs flex-wrap">
+          <span className="text-text-dim uppercase hidden sm:inline">Severity:</span>
           {(['ALL', 'CRITICAL', 'HIGH', 'LOW', 'INFORMATIONAL'] as const).map(sev => (
             <button
               key={sev}
@@ -133,7 +133,7 @@ export const IncidentsList: React.FC = () => {
       </div>
 
       {/* Dense Table */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-left font-mono">
           <thead className="bg-surface sticky top-0 border-b border-border text-2xs text-text-dim uppercase tracking-wider select-none">
             <tr>

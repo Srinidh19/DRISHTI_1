@@ -74,7 +74,7 @@ export const CameraNetwork: React.FC = () => {
         </div>
 
         {/* Filter Controls */}
-        <div className="flex items-center gap-2 text-2xs">
+        <div className="flex items-center gap-2 text-2xs flex-wrap">
           {/* BOP Filter */}
           <div className="flex items-center gap-1">
             <span className="text-text-dim">BOP:</span>
@@ -124,7 +124,7 @@ export const CameraNetwork: React.FC = () => {
       </div>
 
       {/* Dense Operational Table */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-left font-mono">
           <thead className="bg-surface sticky top-0 border-b border-border text-2xs text-text-dim uppercase tracking-wider">
             <tr>

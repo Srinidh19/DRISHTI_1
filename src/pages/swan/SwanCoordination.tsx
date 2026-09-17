@@ -142,28 +142,28 @@ export const SwanCoordination: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#111315] text-[#e5e7eb] overflow-hidden">
       {/* Tactical Sub-Header */}
-      <div className="h-12 border-b border-[#30353b] bg-[#181b1f] px-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="min-h-12 py-2 border-b border-[#30353b] bg-[#181b1f] px-3 sm:px-4 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <GitMerge className="w-4 h-4 text-[#477da8]" />
             <span className="text-sm font-semibold tracking-wider text-[#e5e7eb]">
               SWAN COORDINATION ENGINE
             </span>
           </div>
-          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] font-mono">
+          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] font-mono hidden sm:inline">
             DISTRIBUTED EDGE FUSION & HANDOFF PIPELINE
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono">
+        <div className="flex items-center gap-2 sm:gap-4 text-xs font-mono flex-wrap">
           <div className="flex items-center gap-1.5 text-[#8d949d]">
             <Radio className="w-3.5 h-3.5 text-[#3f8f68] animate-pulse" />
             <span>SWAN BROKER:</span>
-            <span className="text-[#e5e7eb]">ONLINE (12 NODES)</span>
+            <span className="text-[#e5e7eb]">ONLINE</span>
           </div>
           <div className="flex items-center gap-1.5 text-[#8d949d]">
             <Activity className="w-3.5 h-3.5 text-[#477da8]" />
-            <span>AVG LATENCY:</span>
+            <span>LATENCY:</span>
             <span className="text-[#3f8f68]">38 MS</span>
           </div>
           <button className="px-2 py-1 rounded bg-[#20242a] border border-[#30353b] hover:bg-[#30353b] text-[#8d949d] hover:text-[#e5e7eb] flex items-center gap-1 transition-colors">
@@ -173,10 +173,10 @@ export const SwanCoordination: React.FC = () => {
         </div>
       </div>
 
-      {/* 3-Column Tactical Workspace */}
-      <div className="flex-1 grid grid-cols-12 min-h-0 divide-x divide-[#30353b]">
+      {/* 3-Column Tactical Workspace (Stacks on mobile, 3-col on desktop) */}
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 min-h-0 divide-y lg:divide-y-0 lg:divide-x divide-[#30353b] overflow-y-auto lg:overflow-hidden">
         {/* LEFT COLUMN: Coordination & Handoff Event Log (col-span-3) */}
-        <div className="col-span-3 flex flex-col min-h-0 bg-[#14171a]">
+        <div className="col-span-12 lg:col-span-3 flex flex-col min-h-[220px] max-h-[300px] lg:max-h-none lg:min-h-0 bg-[#14171a] shrink-0">
           <div className="p-3 border-b border-[#30353b] flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs font-mono text-[#8d949d]">
               <span className="font-semibold text-[#e5e7eb]">COORDINATION QUEUE</span>
@@ -234,7 +234,7 @@ export const SwanCoordination: React.FC = () => {
         </div>
 
         {/* CENTER COLUMN: Visual Handoff & Dual Synchronized Surveillance Feeds (col-span-5) */}
-        <div className="col-span-5 flex flex-col min-h-0 bg-[#111315] p-3 gap-3 overflow-y-auto">
+        <div className="col-span-12 lg:col-span-5 flex flex-col min-h-0 bg-[#111315] p-3 gap-3 overflow-y-auto">
           {/* Handoff Step Pipeline */}
           <div className="bg-[#181b1f] border border-[#30353b] rounded p-3">
             <div className="text-xs font-mono text-[#8d949d] mb-2 flex items-center justify-between">
@@ -242,7 +242,7 @@ export const SwanCoordination: React.FC = () => {
               <span className="text-[#3f8f68]">CONFIRMED &bull; {selectedEvent.latencyMs}ms</span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 text-center text-[11px] font-mono">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px] font-mono">
               <div className="p-2 rounded bg-[#20242a] border border-[#30353b]">
                 <div className="text-[#8d949d] text-[10px]">STEP 1</div>
                 <div className="text-[#e5e7eb] font-semibold mt-0.5">DETECTION</div>
@@ -267,7 +267,7 @@ export const SwanCoordination: React.FC = () => {
           </div>
 
           {/* Synchronized Feeds: Source vs Target */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <div className="text-[11px] font-mono text-[#8d949d] flex items-center justify-between px-1">
                 <span>ORIGIN CAMERA FEED</span>
@@ -358,7 +358,7 @@ export const SwanCoordination: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: Selected Coordination Event Detail & Reasoning (col-span-4) */}
-        <div className="col-span-4 flex flex-col min-h-0 bg-[#181b1f] p-4 overflow-y-auto">
+        <div className="col-span-12 lg:col-span-4 flex flex-col min-h-0 bg-[#181b1f] p-3 sm:p-4 overflow-y-auto">
           <div className="flex items-center justify-between pb-3 border-b border-[#30353b] mb-4">
             <div>
               <div className="text-xs font-mono text-[#8d949d]">HANDOFF DOSSIER</div>

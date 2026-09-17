@@ -37,7 +37,7 @@ export const ShieldOverview: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#111315] text-[#e5e7eb] overflow-y-auto">
       {/* Tactical Sub-Header */}
-      <div className="h-12 border-b border-[#30353b] bg-[#181b1f] px-4 flex items-center justify-between shrink-0">
+      <div className="min-h-[3rem] h-auto md:h-12 py-2 md:py-0 border-b border-[#30353b] bg-[#181b1f] px-4 flex flex-wrap items-center justify-between gap-2 shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-[#3f8f68]" />
@@ -45,7 +45,7 @@ export const ShieldOverview: React.FC = () => {
               SHIELD HEALTH OVERVIEW
             </span>
           </div>
-          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] font-mono">
+          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] font-mono hidden sm:inline-block">
             AUTONOMOUS INFRASTRUCTURE DEFENSE & RESTORATION
           </span>
         </div>
@@ -136,7 +136,7 @@ export const ShieldOverview: React.FC = () => {
                   <div className="text-[10px] text-[#8d949d] uppercase font-semibold">
                     Sector Perimeter Impact Analysis
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div className="p-2 rounded bg-[#181b1f] border border-[#30353b]">
                       <div className="text-[#8d949d] text-[10px]">BEFORE</div>
                       <div className="font-bold text-[#e5e7eb] text-sm mt-0.5">100%</div>

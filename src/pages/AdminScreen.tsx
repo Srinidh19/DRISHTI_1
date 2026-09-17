@@ -50,10 +50,10 @@ export const AdminScreen: React.FC = () => {
         </div>
 
         {/* Subroutes Navigation */}
-        <div className="flex items-center gap-1 bg-surface-2 p-1 rounded border border-border text-2xs">
+        <div className="flex items-center gap-1 bg-surface-2 p-1 rounded border border-border text-2xs overflow-x-auto max-w-full">
           <Link
             to="/app/admin/users"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-3 py-1 rounded transition-colors whitespace-nowrap shrink-0 ${
               activeSubTab === 'users'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -63,7 +63,7 @@ export const AdminScreen: React.FC = () => {
           </Link>
           <Link
             to="/app/admin/cameras"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-3 py-1 rounded transition-colors whitespace-nowrap shrink-0 ${
               activeSubTab === 'cameras'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -73,7 +73,7 @@ export const AdminScreen: React.FC = () => {
           </Link>
           <Link
             to="/app/admin/zones"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-3 py-1 rounded transition-colors whitespace-nowrap shrink-0 ${
               activeSubTab === 'zones'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -83,7 +83,7 @@ export const AdminScreen: React.FC = () => {
           </Link>
           <Link
             to="/app/admin/audit"
-            className={`px-3 py-1 rounded transition-colors ${
+            className={`px-3 py-1 rounded transition-colors whitespace-nowrap shrink-0 ${
               activeSubTab === 'audit'
                 ? 'bg-surface-3 text-white font-semibold'
                 : 'text-text-muted hover:text-text'
@@ -95,7 +95,7 @@ export const AdminScreen: React.FC = () => {
       </div>
 
       {/* Role Permission Banner */}
-      <div className="p-2.5 bg-surface-2 border-b border-border flex items-center justify-between text-2xs">
+      <div className="p-2.5 bg-surface-2 border-b border-border flex flex-wrap items-center justify-between gap-2 text-2xs">
         <div className="flex items-center gap-2">
           <UserCheck className="w-3.5 h-3.5 text-info" />
           <span>
@@ -149,8 +149,8 @@ export const AdminScreen: React.FC = () => {
                 <span className="text-2xs text-text-dim">3 Active Officers</span>
               </div>
 
-              <div className="overflow-y-auto">
-                <table className="w-full text-left font-mono">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left font-mono">
                   <thead className="bg-surface border-b border-border text-2xs text-text-dim uppercase">
                     <tr>
                       <th className="py-2.5 px-3">Callsign / ID</th>
@@ -320,13 +320,13 @@ export const AdminScreen: React.FC = () => {
               ].map((log, i) => (
                 <div
                   key={i}
-                  className="p-2 rounded bg-surface-2 border border-border flex items-center justify-between text-2xs"
+                  className="p-2 rounded bg-surface-2 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-2xs"
                 >
                   <div>
                     <span className="font-bold text-text">[{log.action}]</span>{' '}
                     <span className="text-text-muted">{log.details}</span>
                   </div>
-                  <div className="text-right text-text-dim whitespace-nowrap ml-4">
+                  <div className="text-left sm:text-right text-text-dim whitespace-nowrap sm:ml-4">
                     <span>{log.actor}</span> • <span>{log.time}</span>
                   </div>
                 </div>

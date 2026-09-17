@@ -117,20 +117,20 @@ export const EvidenceScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Search & Filters */}
-      <div className="p-2.5 bg-surface-2 border-b border-border flex flex-wrap items-center justify-between gap-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-text-muted" />
+      {/* Sub-header Controls */}
+      <div className="min-h-[2.5rem] h-auto py-2 md:py-0 border-b border-border bg-surface-2 px-4 flex flex-wrap items-center justify-between gap-2 shrink-0 font-mono text-xs">
+        <div className="relative flex-1 min-w-[160px] max-w-sm">
+          <Search className="w-3.5 h-3.5 text-text-dim absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by Evidence ID, Incident ID, Camera..."
-            className="w-full bg-surface border border-border rounded pl-8 pr-3 py-1.5 text-xs text-text placeholder-text-dim focus:outline-none focus:border-info"
+            placeholder="Search evidence ID, incident, camera..."
+            className="w-full bg-surface border border-border rounded pl-8 pr-3 py-1 text-text placeholder-text-dim focus:outline-none focus:border-info"
           />
         </div>
 
-        <div className="flex items-center gap-2 text-2xs">
+        <div className="flex flex-wrap items-center gap-2 text-2xs">
           <div className="flex items-center gap-1">
             <span className="text-text-dim">STATUS:</span>
             <select
@@ -163,10 +163,10 @@ export const EvidenceScreen: React.FC = () => {
       </div>
 
       {/* 2-Column Split: Table & Evidence Viewer */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden">
         {/* Left Column: Evidence List Table */}
-        <div className="flex-1 overflow-y-auto border-r border-border">
-          <table className="w-full text-left font-mono text-xs">
+        <div className="flex-1 overflow-auto border-b lg:border-b-0 lg:border-r border-border min-h-[300px] lg:min-h-0">
+          <table className="w-full min-w-[620px] text-left font-mono text-xs">
             <thead className="bg-surface sticky top-0 border-b border-border text-2xs text-text-dim uppercase tracking-wider">
               <tr>
                 <th className="py-2.5 px-3">Time</th>
@@ -215,7 +215,7 @@ export const EvidenceScreen: React.FC = () => {
 
         {/* Right Column: Evidence Inspector Panel */}
         {selectedItem && (
-          <div className="w-96 bg-surface flex flex-col overflow-y-auto shrink-0">
+          <div className="w-full lg:w-96 border-t lg:border-t-0 bg-surface flex flex-col overflow-y-auto shrink-0">
             <div className="p-3 bg-surface-2 border-b border-border flex items-center justify-between">
               <span className="font-bold text-text uppercase tracking-wider">
                 Evidence Inspector

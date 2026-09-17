@@ -58,7 +58,7 @@ export const SwanActiveTracks: React.FC = () => {
         </div>
 
         {/* Navigation Subroutes */}
-        <div className="flex items-center gap-1 bg-surface-2 p-0.5 rounded border border-border text-2xs">
+        <div className="flex items-center gap-1 bg-surface-2 p-0.5 rounded border border-border text-2xs overflow-x-auto max-w-full">
           <Link
             to="/app/swan/overview"
             className="px-2.5 py-1 rounded text-text-muted hover:text-text hover:bg-surface-3/50 transition-colors"

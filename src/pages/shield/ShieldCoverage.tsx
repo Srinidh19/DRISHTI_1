@@ -21,13 +21,13 @@ export const ShieldCoverage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#111315] text-[#e5e7eb] overflow-hidden">
       {/* Header */}
-      <div className="h-12 border-b border-[#30353b] bg-[#181b1f] px-4 flex items-center justify-between shrink-0 font-mono">
+      <div className="min-h-[3rem] h-auto md:h-12 border-b border-[#30353b] bg-[#181b1f] px-4 py-2 md:py-0 flex flex-wrap items-center justify-between gap-2 shrink-0 font-mono">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-[#477da8]" />
           <span className="text-sm font-semibold tracking-wider text-[#e5e7eb]">
             SHIELD COVERAGE & SECTOR BLIND ZONES
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d]">
+          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] hidden sm:inline-block">
             SECTOR: BOP-17 NORTH
           </span>
         </div>
@@ -47,14 +47,14 @@ export const ShieldCoverage: React.FC = () => {
       </div>
 
       {/* Main Coverage Viewport: Full GIS Map with Sector Overlay Sidebar */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-y-auto md:overflow-hidden">
         {/* Central Map Surface */}
-        <div className="flex-1 relative min-h-0 bg-[#0f1114]">
+        <div className="w-full h-80 md:h-full md:flex-1 relative min-h-[300px] md:min-h-0 bg-[#0f1114] shrink-0 md:shrink">
           <CommandMap />
         </div>
 
         {/* Right Sector Analysis Column */}
-        <div className="w-80 bg-[#181b1f] border-l border-[#30353b] flex flex-col min-h-0 p-4 font-mono text-xs overflow-y-auto">
+        <div className="w-full md:w-80 bg-[#181b1f] border-t md:border-t-0 md:border-l border-[#30353b] flex flex-col min-h-0 p-4 font-mono text-xs overflow-y-auto">
           <div className="pb-3 border-b border-[#30353b] mb-4">
             <div className="text-[10px] text-[#8d949d]">SECTOR PROFILE</div>
             <div className="text-sm font-bold text-[#e5e7eb]">BOP-17 / NORTH PERIMETER</div>

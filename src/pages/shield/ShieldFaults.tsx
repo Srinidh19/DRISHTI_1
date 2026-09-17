@@ -20,6 +20,7 @@ export const ShieldFaults: React.FC = () => {
   const { shieldFaults, cameras, dispatchMaintenance } = useRealtime();
   const [selectedFaultId, setSelectedFaultId] = useState<string>(shieldFaults[0]?.id || 'FLT-2026-081');
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
+  const [mobileTab, setMobileTab] = useState<'queue' | 'dossier'>('queue');
 
   const selectedFault = shieldFaults.find(f => f.id === selectedFaultId) || shieldFaults[0];
   const affectedCam = cameras.find(c => c.id === selectedFault?.cameraId) || cameras[2];
@@ -32,22 +33,46 @@ export const ShieldFaults: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#111315] text-[#e5e7eb] overflow-hidden">
       {/* Header */}
-      <div className="h-12 border-b border-[#30353b] bg-[#181b1f] px-4 flex items-center justify-between shrink-0 font-mono">
+      <div className="min-h-[3rem] h-auto md:h-12 border-b border-[#30353b] bg-[#181b1f] px-4 py-2 md:py-0 flex flex-wrap items-center justify-between gap-2 shrink-0 font-mono">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-[#c28a28]" />
           <span className="text-sm font-semibold tracking-wider text-[#e5e7eb]">
             SHIELD ACTIVE FAULTS & DIAGNOSTICS
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d]">
+          <span className="text-xs px-2 py-0.5 rounded bg-[#20242a] border border-[#30353b] text-[#8d949d] hidden sm:inline-block">
             {filteredFaults.length} Active Anomalies
           </span>
+        </div>
+
+        {/* Mobile View Toggle */}
+        <div className="flex lg:hidden bg-[#20242a] p-0.5 rounded border border-[#30353b] text-xs">
+          <button
+            onClick={() => setMobileTab('queue')}
+            className={`px-2.5 py-1 rounded font-bold transition-colors ${
+              mobileTab === 'queue' ? 'bg-[#30353b] text-white' : 'text-[#8d949d]'
+            }`}
+          >
+            QUEUE ({filteredFaults.length})
+          </button>
+          <button
+            onClick={() => setMobileTab('dossier')}
+            className={`px-2.5 py-1 rounded font-bold transition-colors ${
+              mobileTab === 'dossier' ? 'bg-[#30353b] text-white' : 'text-[#8d949d]'
+            }`}
+          >
+            DOSSIER
+          </button>
         </div>
       </div>
 
       {/* 2-Column Split: Faults Registry vs Selected Diagnostic Dossier */}
-      <div className="flex-1 grid grid-cols-12 min-h-0 divide-x divide-[#30353b]">
-        {/* Left Column: Faults Registry (col-span-5) */}
-        <div className="col-span-5 flex flex-col min-h-0 bg-[#14171a] font-mono">
+      <div className="flex-1 grid grid-cols-12 min-h-0 lg:divide-x divide-[#30353b]">
+        {/* Left Column: Faults Registry */}
+        <div
+          className={`${
+            mobileTab === 'queue' ? 'flex' : 'hidden'
+          } lg:flex col-span-12 lg:col-span-5 flex-col min-h-0 bg-[#14171a] font-mono`}
+        >
           <div className="p-3 border-b border-[#30353b] flex items-center justify-between">
             <span className="text-xs font-semibold text-[#e5e7eb]">FAULT LOG QUEUE</span>
             <div className="flex items-center gap-1.5 text-xs">
@@ -71,7 +96,10 @@ export const ShieldFaults: React.FC = () => {
               return (
                 <div
                   key={flt.id}
-                  onClick={() => setSelectedFaultId(flt.id)}
+                  onClick={() => {
+                    setSelectedFaultId(flt.id);
+                    setMobileTab('dossier');
+                  }}
                   className={`p-3.5 cursor-pointer transition-colors ${
                     isSelected ? 'bg-[#20242a] border-l-2 border-l-[#c28a28]' : 'hover:bg-[#181b1f]/80'
                   }`}
@@ -103,13 +131,25 @@ export const ShieldFaults: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Selected Diagnostic Dossier (col-span-7) */}
+        {/* Right Column: Selected Diagnostic Dossier */}
         {selectedFault ? (
-          <div className="col-span-7 flex flex-col min-h-0 bg-[#181b1f] p-4 overflow-y-auto font-mono text-xs">
+          <div
+            className={`${
+              mobileTab === 'dossier' ? 'flex' : 'hidden'
+            } lg:flex col-span-12 lg:col-span-7 flex-col min-h-0 bg-[#181b1f] p-4 overflow-y-auto font-mono text-xs`}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#30353b] mb-4">
-              <div>
-                <div className="text-[10px] text-[#8d949d]">FAULT IDENTIFIER</div>
-                <div className="text-base font-bold text-[#e5e7eb]">{selectedFault.id}</div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setMobileTab('queue')}
+                  className="lg:hidden px-2 py-1 bg-[#20242a] border border-[#30353b] rounded text-[#8d949d] hover:text-[#e5e7eb] text-xs font-bold"
+                >
+                  &larr; QUEUE
+                </button>
+                <div>
+                  <div className="text-[10px] text-[#8d949d]">FAULT IDENTIFIER</div>
+                  <div className="text-base font-bold text-[#e5e7eb]">{selectedFault.id}</div>
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-[#8d949d]">RECOVERY STATE</div>
@@ -190,7 +230,11 @@ export const ShieldFaults: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="col-span-7 flex items-center justify-center text-xs text-[#8d949d] font-mono">
+          <div
+            className={`${
+              mobileTab === 'dossier' ? 'flex' : 'hidden'
+            } lg:flex col-span-12 lg:col-span-7 items-center justify-center text-xs text-[#8d949d] font-mono p-8`}
+          >
             SELECT A FAULT TO INSPECT
           </div>
         )}

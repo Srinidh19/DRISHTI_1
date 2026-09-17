@@ -109,7 +109,7 @@ export const IncidentWorkspace: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-2xs text-text-muted">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-2xs text-text-muted">
           <div>
             <span className="text-text-dim">LOCATION: </span>
             <span className="text-text font-semibold">{incident.location} ({incident.bop})</span>
@@ -294,7 +294,7 @@ export const IncidentWorkspace: React.FC = () => {
             <span>DISMISS FALSE POSITIVE</span>
           </button>
 
-          <div className="flex items-center gap-1.5 ml-auto">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto sm:ml-auto pt-1 sm:pt-0">
             <input
               type="text"
               value={assigneeInput}

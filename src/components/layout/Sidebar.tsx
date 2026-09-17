@@ -10,11 +10,17 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { useRealtime } from '../../context/RealtimeContext';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onCloseMobile }) => {
   const location = useLocation();
   const { incidents, shieldFaults } = useRealtime();
 
@@ -30,12 +36,13 @@ export const Sidebar: React.FC = () => {
   const isEvidenceActive = location.pathname.startsWith('/app/evidence');
   const isAdminActive = location.pathname.startsWith('/app/admin');
 
-  return (
-    <aside className="w-56 bg-surface border-r border-border flex flex-col justify-between select-none shrink-0 font-mono text-xs overflow-y-auto">
+  const navContent = (onItemClick?: () => void) => (
+    <>
       <div className="py-2.5 px-2 space-y-1">
         {/* COMMAND */}
         <NavLink
           to="/app/command"
+          onClick={onItemClick}
           className={({ isActive }) =>
             `flex items-center gap-2.5 px-2.5 py-1.5 rounded transition-colors ${
               isActive
@@ -51,6 +58,7 @@ export const Sidebar: React.FC = () => {
         {/* INCIDENTS */}
         <NavLink
           to="/app/incidents"
+          onClick={onItemClick}
           className={({ isActive }) =>
             `flex items-center justify-between px-2.5 py-1.5 rounded transition-colors ${
               isActive
@@ -79,6 +87,7 @@ export const Sidebar: React.FC = () => {
           <div className="pl-4 space-y-0.5 mt-0.5">
             <NavLink
               to="/app/surveillance/cameras"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -89,6 +98,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/surveillance/live"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -99,6 +109,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/surveillance/tracks"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -119,6 +130,7 @@ export const Sidebar: React.FC = () => {
           <div className="pl-4 space-y-0.5 mt-0.5">
             <NavLink
               to="/app/swan/overview"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive || location.pathname === '/app/swan' ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -129,6 +141,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/swan/tracks"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -139,6 +152,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/swan/coordination"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -166,6 +180,7 @@ export const Sidebar: React.FC = () => {
           <div className="pl-4 space-y-0.5 mt-0.5">
             <NavLink
               to="/app/shield/overview"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive || location.pathname === '/app/shield' ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -176,6 +191,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/shield/faults"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -186,6 +202,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/shield/coverage"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -196,6 +213,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
             <NavLink
               to="/app/shield/recovery"
+              onClick={onItemClick}
               className={({ isActive }) =>
                 `block px-2.5 py-1 rounded transition-colors ${
                   isActive ? 'bg-surface-3 text-white font-medium' : 'text-text-muted hover:bg-surface-2 hover:text-text'
@@ -211,6 +229,7 @@ export const Sidebar: React.FC = () => {
         <div className="pt-2">
           <NavLink
             to="/app/evidence"
+            onClick={onItemClick}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-2.5 py-1.5 rounded transition-colors ${
                 isActive
@@ -228,6 +247,7 @@ export const Sidebar: React.FC = () => {
         <div>
           <NavLink
             to="/app/analytics"
+            onClick={onItemClick}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-2.5 py-1.5 rounded transition-colors ${
                 isActive
@@ -245,6 +265,7 @@ export const Sidebar: React.FC = () => {
         <div className="pt-2 border-t border-border mt-2">
           <NavLink
             to="/app/admin/users"
+            onClick={onItemClick}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-2.5 py-1.5 rounded transition-colors ${
                 isActive || isAdminActive
@@ -264,6 +285,46 @@ export const Sidebar: React.FC = () => {
         <p className="font-semibold text-text-muted mb-0.5">DRISHTI DOCTRINE</p>
         <p>Detect locally → verify through multiple signals → correlate → assess risk → preserve evidence → human operator decides.</p>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar (Unchanged w-56) */}
+      <aside className="w-56 bg-surface border-r border-border hidden md:flex flex-col justify-between select-none shrink-0 font-mono text-xs overflow-y-auto">
+        {navContent()}
+      </aside>
+
+      {/* Mobile Drawer Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 z-40 md:hidden backdrop-blur-xs transition-opacity"
+          onClick={onCloseMobile}
+        />
+      )}
+
+      {/* Mobile Slide-out Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 w-64 max-w-[80vw] bg-surface border-r border-border z-50 flex flex-col justify-between select-none font-mono text-xs overflow-y-auto md:hidden transform transition-transform duration-200 ease-in-out shadow-2xl ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-3 border-b border-border flex items-center justify-between bg-surface-2">
+          <div className="flex items-center gap-2 font-bold text-xs tracking-wider text-text">
+            <span>DRISHTI C4I CONSOLE</span>
+          </div>
+          <button
+            onClick={onCloseMobile}
+            className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-3 transition-colors"
+            title="Close Menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {navContent(onCloseMobile)}
+      </aside>
+    </>
   );
 };
+

@@ -9,28 +9,51 @@ export const TracksScreen: React.FC = () => {
   const navigate = useNavigate();
   const { activeTracks, setSelectedIncidentId } = useRealtime();
   const [selectedTrackId, setSelectedTrackId] = useState<string>(activeTracks[0]?.id || 'T-104');
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
 
   const selectedTrack = activeTracks.find(t => t.id === selectedTrackId) || activeTracks[0];
 
   return (
     <div className="flex flex-col h-full bg-bg font-mono text-xs overflow-hidden select-none">
       {/* Header */}
-      <div className="p-3 bg-surface border-b border-border flex items-center justify-between">
+      <div className="p-2.5 sm:p-3 bg-surface border-b border-border flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-info" />
-          <h1 className="text-sm font-bold text-text uppercase tracking-wider">
+          <h1 className="text-xs sm:text-sm font-bold text-text uppercase tracking-wider">
             Active Target Tracking Registry
           </h1>
           <span className="px-2 py-0.5 rounded bg-surface-2 border border-border text-2xs text-text-muted">
             {activeTracks.length} Persistent Targets
           </span>
         </div>
+
+        {/* Mobile View Toggle */}
+        <div className="flex md:hidden items-center gap-1 bg-surface-2 p-0.5 rounded border border-border text-2xs">
+          <button
+            onClick={() => setMobileView('list')}
+            className={`px-2 py-1 rounded font-semibold ${
+              mobileView === 'list' ? 'bg-surface-3 text-white' : 'text-text-muted'
+            }`}
+          >
+            Entities ({activeTracks.length})
+          </button>
+          <button
+            onClick={() => setMobileView('detail')}
+            className={`px-2 py-1 rounded font-semibold ${
+              mobileView === 'detail' ? 'bg-surface-3 text-white' : 'text-text-muted'
+            }`}
+          >
+            Map & Detail
+          </button>
+        </div>
       </div>
 
       {/* 2-Column Split: Tracks List & Track Detail / GIS Map */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {/* Left Column: List of Active Tracks */}
-        <div className="w-80 border-r border-border bg-surface flex flex-col overflow-y-auto">
+        <div className={`w-full md:w-80 border-r border-border bg-surface flex flex-col overflow-y-auto shrink-0 ${
+          mobileView === 'detail' ? 'hidden md:flex' : 'flex'
+        }`}>
           <div className="p-2 border-b border-border bg-surface-2 text-2xs text-text-dim uppercase tracking-wider font-semibold">
             Track Entities
           </div>
@@ -40,7 +63,10 @@ export const TracksScreen: React.FC = () => {
               return (
                 <div
                   key={track.id}
-                  onClick={() => setSelectedTrackId(track.id)}
+                  onClick={() => {
+                    setSelectedTrackId(track.id);
+                    setMobileView('detail');
+                  }}
                   className={`p-3 cursor-pointer transition-colors ${
                     isSelected
                       ? 'bg-surface-3 border-l-4 border-critical'
@@ -93,35 +119,44 @@ export const TracksScreen: React.FC = () => {
 
         {/* Right Column: Track Detail & Map Corridor */}
         {selectedTrack && (
-          <div className="flex-1 flex flex-col min-w-0 bg-bg">
+          <div className={`flex-1 flex flex-col min-w-0 bg-bg ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}>
             {/* Top Track Summary Banner */}
-            <div className="p-3 bg-surface border-b border-border grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="p-2 sm:p-3 bg-surface border-b border-border grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
+              <div className="col-span-2 md:hidden pb-1 border-b border-border/40">
+                <button
+                  onClick={() => setMobileView('list')}
+                  className="flex items-center gap-1 text-2xs text-info hover:underline"
+                >
+                  <ArrowRight className="w-3 h-3 rotate-180" />
+                  <span>Back to Entities List</span>
+                </button>
+              </div>
               <div>
                 <div className="text-2xs text-text-dim uppercase">Origin Camera</div>
-                <div className="text-sm font-bold text-text">{selectedTrack.originCamera}</div>
+                <div className="text-xs sm:text-sm font-bold text-text">{selectedTrack.originCamera}</div>
               </div>
               <div>
                 <div className="text-2xs text-text-dim uppercase">Current Camera</div>
-                <div className="text-sm font-bold text-critical">{selectedTrack.currentCamera}</div>
+                <div className="text-xs sm:text-sm font-bold text-critical">{selectedTrack.currentCamera}</div>
               </div>
               <div>
                 <div className="text-2xs text-text-dim uppercase">Direction Vector</div>
-                <div className="text-sm font-bold text-text">{selectedTrack.direction}</div>
+                <div className="text-xs sm:text-sm font-bold text-text">{selectedTrack.direction}</div>
               </div>
               <div>
                 <div className="text-2xs text-text-dim uppercase">Predicted Next Camera</div>
-                <div className="text-sm font-bold text-info">
+                <div className="text-xs sm:text-sm font-bold text-info">
                   {selectedTrack.predictedNextCamera}
                 </div>
               </div>
-              <div>
+              <div className="col-span-2 md:col-span-1">
                 <div className="text-2xs text-text-dim uppercase">Related Incident</div>
                 <button
                   onClick={() => {
                     setSelectedIncidentId(selectedTrack.relatedIncidentId);
                     navigate(`/app/incidents/${selectedTrack.relatedIncidentId}`);
                   }}
-                  className="flex items-center gap-1 text-sm font-bold text-info hover:underline"
+                  className="flex items-center gap-1 text-xs sm:text-sm font-bold text-info hover:underline"
                 >
                   <span>{selectedTrack.relatedIncidentId}</span>
                   <ExternalLink className="w-3 h-3" />
@@ -130,12 +165,12 @@ export const TracksScreen: React.FC = () => {
             </div>
 
             {/* Tactical Map with Waypoint Vector Overlay */}
-            <div className="flex-1 relative min-h-0">
+            <div className="flex-1 relative min-h-[220px]">
               <CommandMap />
             </div>
 
             {/* Waypoints History Table */}
-            <div className="h-44 bg-surface border-t border-border flex flex-col shrink-0">
+            <div className="h-44 bg-surface border-t border-border flex flex-col shrink-0 overflow-auto">
               <div className="p-2 bg-surface-2 border-b border-border text-2xs text-text-dim uppercase tracking-wider font-semibold">
                 Trajectory Waypoints Log ({selectedTrack.id})
               </div>

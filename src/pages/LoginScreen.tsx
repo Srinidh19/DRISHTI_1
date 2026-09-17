@@ -25,11 +25,11 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-bg flex flex-col justify-between p-6 select-none font-mono text-xs text-text">
+    <div className="min-h-screen w-full max-w-full bg-bg flex flex-col justify-between p-3 sm:p-6 select-none font-mono text-xs text-text overflow-x-hidden">
       {/* Top Banner */}
-      <div className="flex items-center justify-between border-b border-border pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-surface-2 border border-border flex items-center justify-center rounded">
+          <div className="w-6 h-6 bg-surface-2 border border-border flex items-center justify-center rounded shrink-0">
             <Radio className="w-3.5 h-3.5 text-text" />
           </div>
           <div>
@@ -40,12 +40,12 @@ export const LoginScreen: React.FC = () => {
           </div>
         </div>
         <div className="text-2xs text-text-dim">
-          NORTH SECTOR / BOP-17 • RESTRICTED ACCESS WORKSTATION
+          NORTH SECTOR / BOP-17 &bull; RESTRICTED ACCESS WORKSTATION
         </div>
       </div>
 
       {/* Center Login Terminal */}
-      <div className="w-full max-w-md mx-auto bg-surface border border-border rounded shadow-2xl p-6 space-y-5">
+      <div className="w-full max-w-md mx-auto bg-surface border border-border rounded shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 my-4 sm:my-auto">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-info">
             <Shield className="w-4 h-4" />

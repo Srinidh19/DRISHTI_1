@@ -743,8 +743,8 @@ export const DrishtiMaplibre: React.FC<DrishtiMaplibreProps> = ({
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search camera (CAM-03) or incident..."
-              className="w-64 bg-surface/95 border border-border rounded px-2.5 py-1 text-xs text-text placeholder-text-dim focus:outline-none focus:border-info shadow"
+              placeholder="Search camera or incident..."
+              className="w-32 sm:w-48 md:w-64 bg-surface/95 border border-border rounded px-2 sm:px-2.5 py-1 text-2xs sm:text-xs text-text placeholder-text-dim focus:outline-none focus:border-info shadow"
             />
             <button
               type="submit"
@@ -763,14 +763,14 @@ export const DrishtiMaplibre: React.FC<DrishtiMaplibreProps> = ({
         </div>
 
         {/* TOP RIGHT: Clean Map Toolbar (MAP: VECTOR | Layers | Fullscreen) */}
-        <div className="absolute top-2 right-2 flex items-center gap-1.5 pointer-events-auto">
+        <div className="absolute top-2 right-2 flex items-center gap-1 sm:gap-1.5 pointer-events-auto">
           {/* Active Style Indicator */}
           <button
             onClick={() => setShowLayerMenu(prev => !prev)}
-            className="px-2.5 py-1 bg-surface/95 border border-border hover:bg-surface-2 rounded text-xs font-semibold text-text shadow-lg transition-colors backdrop-blur-sm flex items-center gap-1.5"
+            className="px-1.5 sm:px-2.5 py-1 bg-surface/95 border border-border hover:bg-surface-2 rounded text-2xs sm:text-xs font-semibold text-text shadow-lg transition-colors backdrop-blur-sm flex items-center gap-1 sm:gap-1.5"
             title="Change Map Style in Layers Popover"
           >
-            <span className="text-text-dim">MAP:</span>
+            <span className="text-text-dim hidden sm:inline">MAP:</span>
             <span className="text-info">{MAP_STYLES[activeStyleId]?.name || 'VECTOR'}</span>
           </button>
 

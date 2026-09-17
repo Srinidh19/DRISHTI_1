@@ -107,18 +107,18 @@ export const LiveWallScreen: React.FC = () => {
       {/* Grid Layout Canvas */}
       <div className="flex-1 p-2 overflow-y-auto min-h-0">
         <div
-          className={`grid gap-2 h-full ${
+          className={`grid gap-2 h-full grid-cols-1 sm:grid-cols-2 ${
             gridSize === 4
-              ? 'grid-cols-2 grid-rows-2'
+              ? 'md:grid-cols-2 md:grid-rows-2'
               : gridSize === 6
-              ? 'grid-cols-3 grid-rows-2'
+              ? 'md:grid-cols-3 md:grid-rows-2'
               : gridSize === 9
-              ? 'grid-cols-3 grid-rows-3'
-              : 'grid-cols-4 grid-rows-3'
+              ? 'md:grid-cols-3 md:grid-rows-3'
+              : 'md:grid-cols-4 md:grid-rows-3'
           }`}
         >
           {filteredCameras.map(cam => (
-            <div key={cam.id} className="min-h-[160px] h-full">
+            <div key={cam.id} className="min-h-[180px] sm:min-h-[160px] h-52 sm:h-full">
               <CameraFeed camera={cam} aspectRatio="h-full w-full" showControls={true} />
             </div>
           ))}

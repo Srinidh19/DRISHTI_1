@@ -31,13 +31,13 @@ export const AnalyticsScreen: React.FC = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-surface-2 p-1 rounded border border-border text-2xs">
+        <div className="flex items-center gap-1 bg-surface-2 p-1 rounded border border-border text-2xs overflow-x-auto max-w-full">
           {(['INCIDENTS', 'CAMERA PERFORMANCE', 'SWAN', 'SHIELD', 'AI PERFORMANCE'] as const).map(
             tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1 rounded font-semibold transition-colors ${
+                className={`px-3 py-1 rounded font-semibold transition-colors whitespace-nowrap shrink-0 ${
                   activeTab === tab
                     ? 'bg-surface-3 text-white'
                     : 'text-text-muted hover:text-text'
