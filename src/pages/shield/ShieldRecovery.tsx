@@ -116,7 +116,7 @@ export const ShieldRecovery: React.FC = () => {
               <span className="text-[#8d949d]">FAILED NODE ({cam3.id})</span>
               <span className="text-[#c93c3c] font-bold">OBSTRUCTED / FAULT</span>
             </div>
-            <div className="h-56 border border-[#30353b] rounded overflow-hidden">
+            <div className="w-full aspect-video border border-[#30353b] rounded overflow-hidden">
               <CameraFeed camera={cam3} showControls={false} />
             </div>
             <div className="text-[11px] text-[#8d949d] p-2 bg-[#20242a] rounded">
@@ -129,7 +129,7 @@ export const ShieldRecovery: React.FC = () => {
               <span className="text-[#8d949d]">AUTONOMOUS BACKUP ({camTower.id})</span>
               <span className="text-[#3f8f68] font-bold">SLEWED +32° AZIMUTH &bull; RESTORING</span>
             </div>
-            <div className="h-56 border border-[#30353b] rounded overflow-hidden">
+            <div className="w-full aspect-video border border-[#30353b] rounded overflow-hidden">
               <CameraFeed camera={camTower} showControls={false} />
             </div>
             <div className="text-[11px] text-[#8d949d] p-2 bg-[#20242a] rounded">

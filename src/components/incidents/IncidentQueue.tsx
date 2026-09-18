@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRealtime } from '../../context/RealtimeContext';
 import { Incident, IncidentSeverity } from '../../types';
 import { SeverityBadge } from '../status/SeverityBadge';
-import { AlertTriangle, Clock } from 'lucide-react';
+import { AlertTriangle, Clock, History, CheckCircle2, XCircle } from 'lucide-react';
 
 interface IncidentQueueProps {
   onSelectIncident?: (incident: Incident) => void;
@@ -10,6 +10,7 @@ interface IncidentQueueProps {
 
 export const IncidentQueue: React.FC<IncidentQueueProps> = ({ onSelectIncident }) => {
   const { incidents, selectedIncidentId, setSelectedIncidentId } = useRealtime();
+  const [queueTab, setQueueTab] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [severityFilter, setSeverityFilter] = useState<'ALL' | IncidentSeverity>('ALL');
 
   // Command screen priority sorting: CRITICAL > HIGH > LOW > INFORMATIONAL
@@ -26,11 +27,19 @@ export const IncidentQueue: React.FC<IncidentQueueProps> = ({ onSelectIncident }
     }
   };
 
+  // Active queue contains DETECTED, UNDER REVIEW, ASSIGNED; excludes CONFIRMED, DISMISSED, RESOLVED
   const activeIncidents = incidents.filter(
-    inc => inc.status !== 'DISMISSED' && inc.status !== 'RESOLVED'
+    inc => inc.status !== 'CONFIRMED' && inc.status !== 'DISMISSED' && inc.status !== 'RESOLVED'
   );
 
-  const sortedIncidents = [...activeIncidents]
+  // History contains CONFIRMED, DISMISSED, RESOLVED
+  const historyIncidents = incidents.filter(
+    inc => inc.status === 'CONFIRMED' || inc.status === 'DISMISSED' || inc.status === 'RESOLVED'
+  );
+
+  const displayList = queueTab === 'ACTIVE' ? activeIncidents : historyIncidents;
+
+  const sortedIncidents = [...displayList]
     .filter(inc => (severityFilter === 'ALL' ? true : inc.severity === severityFilter))
     .sort((a, b) => {
       const diff = severityWeight(b.severity) - severityWeight(a.severity);
@@ -38,22 +47,38 @@ export const IncidentQueue: React.FC<IncidentQueueProps> = ({ onSelectIncident }
       return b.riskScore - a.riskScore;
     });
 
-  const criticalCount = activeIncidents.filter(i => i.severity === 'CRITICAL').length;
-  const highCount = activeIncidents.filter(i => i.severity === 'HIGH').length;
+  const criticalCount = displayList.filter(i => i.severity === 'CRITICAL').length;
+  const highCount = displayList.filter(i => i.severity === 'HIGH').length;
 
   return (
     <div className="flex flex-col h-full min-h-0 w-full bg-surface select-none font-mono text-xs overflow-hidden">
-      {/* QUEUE HEADER (Fixed) */}
-      <div className="shrink-0 p-2.5 border-b border-border flex items-center justify-between bg-surface-2">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="w-3.5 h-3.5 text-critical shrink-0" />
-          <span className="font-bold text-text uppercase tracking-wider text-xs">
-            Active Incident Queue
-          </span>
+      {/* QUEUE TAB SELECTOR (ACTIVE VS HISTORY) */}
+      <div className="shrink-0 p-1.5 border-b border-border bg-surface-2 flex items-center justify-between gap-1 text-2xs">
+        <div className="flex items-center gap-1 w-full">
+          <button
+            onClick={() => setQueueTab('ACTIVE')}
+            className={`flex-1 py-1 px-2 rounded font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+              queueTab === 'ACTIVE'
+                ? 'bg-surface text-white border border-border shadow-sm'
+                : 'text-text-muted hover:text-text'
+            }`}
+          >
+            <AlertTriangle className="w-3 h-3 text-critical" />
+            <span>ACTIVE QUEUE ({activeIncidents.length})</span>
+          </button>
+
+          <button
+            onClick={() => setQueueTab('HISTORY')}
+            className={`flex-1 py-1 px-2 rounded font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+              queueTab === 'HISTORY'
+                ? 'bg-surface text-white border border-border shadow-sm'
+                : 'text-text-muted hover:text-text'
+            }`}
+          >
+            <History className="w-3 h-3 text-info" />
+            <span>HISTORY ({historyIncidents.length})</span>
+          </button>
         </div>
-        <span className="px-1.5 py-0.5 rounded bg-surface border border-border text-2xs text-text-muted">
-          {sortedIncidents.length} active
-        </span>
       </div>
 
       {/* FILTER TABS (Fixed) */}
@@ -66,7 +91,7 @@ export const IncidentQueue: React.FC<IncidentQueueProps> = ({ onSelectIncident }
               : 'text-text-muted hover:text-text'
           }`}
         >
-          ALL ({activeIncidents.length})
+          ALL ({displayList.length})
         </button>
         <button
           onClick={() => setSeverityFilter('CRITICAL')}
@@ -94,15 +119,18 @@ export const IncidentQueue: React.FC<IncidentQueueProps> = ({ onSelectIncident }
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 space-y-2">
         {sortedIncidents.length === 0 ? (
           <div className="p-4 text-center text-text-muted text-xs space-y-1">
-            <div className="font-semibold text-text">NO INCIDENTS MATCH FILTER</div>
+            <div className="font-semibold text-text">
+              {queueTab === 'ACTIVE' ? 'NO ACTIVE INCIDENTS' : 'NO RESOLVED INCIDENTS'}
+            </div>
             <div className="text-2xs text-text-dim">
-              All monitored zones currently show no unresolved events in this tier.
+              {queueTab === 'ACTIVE'
+                ? 'All monitored zones currently clear. Confirmed incidents are logged in History.'
+                : 'No historical or confirmed incidents recorded yet.'}
             </div>
           </div>
         ) : (
           sortedIncidents.map(inc => {
             const isSelected = selectedIncidentId === inc.id;
-
             return (
               <div
                 key={inc.id}
@@ -110,77 +138,50 @@ export const IncidentQueue: React.FC<IncidentQueueProps> = ({ onSelectIncident }
                   setSelectedIncidentId(inc.id);
                   if (onSelectIncident) onSelectIncident(inc);
                 }}
-                className={`p-2.5 rounded border transition-colors cursor-pointer flex flex-col justify-between ${
+                className={`p-2.5 rounded border transition-all cursor-pointer font-mono ${
                   isSelected
-                    ? 'bg-surface-3 border-critical shadow-sm'
-                    : 'bg-surface-2/70 hover:bg-surface-2 border-border'
+                    ? 'bg-surface-3 border-info shadow-md ring-1 ring-info/50'
+                    : 'bg-surface-2 border-border hover:border-border-bright hover:bg-surface-3/50'
                 }`}
               >
-                {/* Header: [SEVERITY] and INCIDENT ID */}
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <SeverityBadge severity={inc.severity} size="sm" />
-                  <span className="font-bold text-text-muted text-2xs tracking-wider">{inc.id}</span>
+                {/* Top row: ID, Severity, Status */}
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="font-bold text-text text-2xs truncate">{inc.id}</span>
+                    <span className="text-text-dim text-[10px]">&bull;</span>
+                    <span className="text-text-muted text-[10px] truncate">{inc.bop}</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {inc.status === 'CONFIRMED' && (
+                      <span className="flex items-center gap-0.5 px-1 py-0.2 rounded bg-success-bg text-success-text text-[9px] font-bold border border-success-border">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        CONFIRMED
+                      </span>
+                    )}
+                    {inc.status === 'DISMISSED' && (
+                      <span className="flex items-center gap-0.5 px-1 py-0.2 rounded bg-surface text-text-dim text-[9px] font-bold border border-border">
+                        <XCircle className="w-2.5 h-2.5" />
+                        DISMISSED
+                      </span>
+                    )}
+                    <SeverityBadge severity={inc.severity} size="sm" />
+                  </div>
                 </div>
 
-                {/* Short Description / Title: limited to 2 lines with line-clamp-2 */}
-                <div
-                  className="font-semibold text-text text-xs mb-1.5 leading-snug line-clamp-2"
-                  title={inc.title}
-                >
+                {/* Title */}
+                <div className="font-semibold text-text text-xs line-clamp-1 mb-1">
                   {inc.title}
                 </div>
 
-                {/* Tactical Metadata Box: Camera, BOP, Target, Risk with consistent padding & line-height */}
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-2xs text-text-muted mb-2 bg-surface/60 p-2 rounded border border-border/50">
-                  <div className="truncate">
-                    <span className="text-text-dim">TARGET: </span>
-                    <span className="text-text font-medium">
-                      {inc.objectCount} {inc.objectType.toLowerCase()}(s)
-                    </span>
+                {/* Metadata row */}
+                <div className="flex items-center justify-between text-[10px] text-text-dim pt-1 border-t border-border/40">
+                  <span className="truncate max-w-[130px]">{inc.primaryCamera}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Clock className="w-2.5 h-2.5 text-text-dim" />
+                    <span>{inc.timestamp.split('T')[1]?.slice(0, 5) || '02:14'}</span>
+                    <span>&bull;</span>
+                    <span className="text-warning font-semibold">Risk {inc.riskScore}</span>
                   </div>
-                  <div className="text-right truncate">
-                    <span className="text-text-dim">RISK: </span>
-                    <span
-                      className={`font-bold ${
-                        inc.riskScore >= 80
-                          ? 'text-critical'
-                          : inc.riskScore >= 50
-                          ? 'text-warning'
-                          : 'text-info'
-                      }`}
-                    >
-                      {inc.riskScore}/100
-                    </span>
-                  </div>
-                  <div className="col-span-2 flex items-center gap-1 text-text-muted truncate">
-                    <span className="text-text-dim shrink-0">CAM: </span>
-                    <span className="text-text truncate" title={inc.cameras.join(' → ')}>
-                      {inc.cameras.join(' → ')}
-                    </span>
-                  </div>
-                  <div className="col-span-2 flex items-center justify-between gap-1 text-text-muted text-[10px]">
-                    <span className="truncate">
-                      <span className="text-text-dim">BOP: </span>
-                      <span className="text-text">{inc.bop || 'BOP-17'}</span>
-                    </span>
-                    {inc.direction && (
-                      <span className="truncate text-right">
-                        <span className="text-text-dim">HDG: </span>
-                        <span className="text-text">{inc.direction}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Timestamp & Status: consistent bottom alignment */}
-                <div className="flex items-center justify-between text-2xs text-text-dim pt-1.5 border-t border-border/40 mt-auto">
-                  <span className="flex items-center gap-1.5 text-text-muted">
-                    <Clock className="w-3 h-3 text-text-dim shrink-0" />
-                    <span>{inc.timestamp}</span>
-                  </span>
-                  <span className="uppercase tracking-wider font-semibold text-text-muted text-[10px]">
-                    [{inc.status}]
-                  </span>
                 </div>
               </div>
             );

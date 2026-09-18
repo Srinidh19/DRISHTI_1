@@ -226,7 +226,7 @@ export const ShieldOverview: React.FC = () => {
                   <span>FAILED SENSOR: {cam3.id} (Obstruction / Tamper)</span>
                   <span className="text-[#c93c3c] font-bold">FAULT DETECTED</span>
                 </div>
-                <div className="h-40">
+                <div className="w-full aspect-video border border-[#30353b] rounded overflow-hidden">
                   <CameraFeed camera={cam3} showControls={false} />
                 </div>
               </div>
@@ -236,7 +236,7 @@ export const ShieldOverview: React.FC = () => {
                   <span>BACKUP PTZ: {camTower.id} (Slewed to Fence Alpha)</span>
                   <span className="text-[#3f8f68] font-bold">RESTORATION 88%</span>
                 </div>
-                <div className="h-40">
+                <div className="w-full aspect-video border border-[#30353b] rounded overflow-hidden">
                   <CameraFeed camera={camTower} showControls={false} />
                 </div>
               </div>

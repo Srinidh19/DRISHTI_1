@@ -277,54 +277,133 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
   }, [refreshBackendData]);
 
-  // Real backend-backed Incident Actions
+  // Real backend-backed Incident Actions with immediate local state & audit timeline updates
   const confirmIncident = useCallback(async (id: string) => {
+    const timeStr = `${new Date().toTimeString().split(' ')[0]} IST`;
+    setIncidents(prev => prev.map(inc => {
+      if (inc.id !== id) return inc;
+      return {
+        ...inc,
+        status: 'CONFIRMED',
+        timeline: [
+          ...inc.timeline,
+          {
+            title: 'Operator Adjudication: CONFIRMED',
+            time: timeStr,
+            description: `Operator action recorded: Confirmed by ${currentUser.name} (${currentUser.badgeNumber || 'CONSOLE-01'}). QRT unit dispatched.`
+          }
+        ]
+      };
+    }));
     try {
       await apiClient.performIncidentAction(id, 'confirm', currentUser.id, currentUser.role);
       await refreshBackendData();
     } catch {
-      // Local fallback
-      setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status: 'CONFIRMED' } : inc));
+      // Local state already updated
     }
   }, [currentUser, refreshBackendData]);
 
   const dismissIncident = useCallback(async (id: string) => {
+    const timeStr = `${new Date().toTimeString().split(' ')[0]} IST`;
+    setIncidents(prev => prev.map(inc => {
+      if (inc.id !== id) return inc;
+      return {
+        ...inc,
+        status: 'DISMISSED',
+        timeline: [
+          ...inc.timeline,
+          {
+            title: 'Operator Adjudication: DISMISSED',
+            time: timeStr,
+            description: `Operator action recorded: Dismissed as authorized patrol/wildlife by ${currentUser.name}.`
+          }
+        ]
+      };
+    }));
     try {
       await apiClient.performIncidentAction(id, 'dismiss', currentUser.id, currentUser.role);
       await refreshBackendData();
     } catch {
-      setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status: 'DISMISSED' } : inc));
+      // Local state already updated
     }
   }, [currentUser, refreshBackendData]);
 
   const escalateIncident = useCallback(async (id: string) => {
+    const timeStr = `${new Date().toTimeString().split(' ')[0]} IST`;
+    setIncidents(prev => prev.map(inc => {
+      if (inc.id !== id) return inc;
+      return {
+        ...inc,
+        severity: 'CRITICAL',
+        status: 'ESCALATED',
+        riskScore: 94,
+        timeline: [
+          ...inc.timeline,
+          {
+            title: 'Tactical Escalation: CRITICAL',
+            time: timeStr,
+            description: `Escalated to Sector Commander & Brigade HQ by ${currentUser.name}.`
+          }
+        ]
+      };
+    }));
     try {
       await apiClient.performIncidentAction(id, 'escalate', currentUser.id, currentUser.role);
       await refreshBackendData();
     } catch {
-      setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, severity: 'CRITICAL', status: 'ESCALATED', riskScore: 92 } : inc));
+      // Local state already updated
     }
   }, [currentUser, refreshBackendData]);
 
   const assignIncident = useCallback(async (id: string, assignee: string) => {
+    const timeStr = `${new Date().toTimeString().split(' ')[0]} IST`;
+    setIncidents(prev => prev.map(inc => {
+      if (inc.id !== id) return inc;
+      return {
+        ...inc,
+        status: 'ASSIGNED',
+        assignedTo: assignee,
+        timeline: [
+          ...inc.timeline,
+          {
+            title: `Assigned: ${assignee}`,
+            time: timeStr,
+            description: `Tactical asset ${assignee} assigned by ${currentUser.name}.`
+          }
+        ]
+      };
+    }));
     try {
       await apiClient.performIncidentAction(id, 'assign', currentUser.id, currentUser.role, undefined, assignee);
       await refreshBackendData();
     } catch {
-      setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status: 'ASSIGNED', assignedTo: assignee } : inc));
+      // Local state already updated
     }
   }, [currentUser, refreshBackendData]);
 
   const annotateIncident = useCallback(async (id: string, noteText: string) => {
     if (!noteText.trim()) return;
+    const timeStr = `${new Date().toTimeString().split(' ')[0]} IST`;
+    setIncidents(prev => prev.map(inc => {
+      if (inc.id !== id) return inc;
+      return {
+        ...inc,
+        notes: [...inc.notes, { id: `note-${Date.now()}`, author: currentUser.name, timestamp: timeStr, text: noteText }],
+        timeline: [
+          ...inc.timeline,
+          {
+            title: 'Operator Note Added',
+            time: timeStr,
+            description: `"${noteText}" - ${currentUser.name}`
+          }
+        ]
+      };
+    }));
     try {
       await apiClient.performIncidentAction(id, 'annotate', currentUser.id, currentUser.role, noteText);
       await refreshBackendData();
     } catch {
-      setIncidents(prev => prev.map(inc => inc.id === id ? {
-        ...inc,
-        notes: [...inc.notes, { id: `note-${Date.now()}`, author: currentUser.name, timestamp: 'Just now', text: noteText }]
-      } : inc));
+      // Local state already updated
     }
   }, [currentUser, refreshBackendData]);
 

@@ -299,12 +299,12 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({
       </div>
 
       {/* VIDEO CANVAS SURFACE */}
-      <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-[#090b0d]">
+      <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-[#090b0d] flex items-center justify-center">
         <canvas
           ref={canvasRef}
           width={380}
           height={214}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain block"
         />
 
         {/* Top-right subtle stream watermark */}

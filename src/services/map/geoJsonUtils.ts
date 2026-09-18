@@ -239,3 +239,28 @@ export function swanLinkToFeature(
     }
   };
 }
+
+export const BOP_SECTOR_LINE: [number, number][] = [
+  [74.8520, 32.7400],
+  [74.8570, 32.7370],
+  [74.8620, 32.7345],
+  [74.8670, 32.7320],
+  [74.8720, 32.7295],
+  [74.8770, 32.7270]
+];
+
+export function bopBoundaryToFeature(): GeoJSON.Feature<GeoJSON.LineString> {
+  return {
+    type: 'Feature',
+    id: 'bop-17-boundary',
+    properties: {
+      name: 'BOP-17 / NORTH SECTOR ZERO LINE',
+      type: 'TACTICAL_BOUNDARY'
+    },
+    geometry: {
+      type: 'LineString',
+      coordinates: BOP_SECTOR_LINE
+    }
+  };
+}
+

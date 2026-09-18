@@ -43,7 +43,7 @@ export const CommandScreen: React.FC = () => {
   ].filter(Boolean);
 
   const activeIncidents = incidents.filter(
-    i => i.status !== 'DISMISSED' && i.status !== 'RESOLVED'
+    i => i.status !== 'CONFIRMED' && i.status !== 'DISMISSED' && i.status !== 'RESOLVED'
   );
 
   const handleSelectIncidentFromQueue = (incident: Incident) => {
@@ -298,7 +298,7 @@ export const CommandScreen: React.FC = () => {
                     : 'text-text-muted hover:text-text'
                 }`}
               >
-                INCIDENT QUEUE ({incidents.filter(i => i.status !== 'DISMISSED' && i.status !== 'RESOLVED').length})
+                INCIDENT QUEUE ({activeIncidents.length})
               </button>
 
               <button
